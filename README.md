@@ -78,7 +78,7 @@ Mastro offers two primary ways to manage state: `Lightro` and `Mastro`. Both can
 
   final user = User(name: 'Alice', age: 30).mastro; // Create a complex state
 
-  // Modify the state without creating a new object
+  // Modify the state without replacing the object
   user.modify((state) {
     state.value.name = 'Bob';
     state.value.age = 31;
@@ -100,25 +100,26 @@ Mastro offers two primary ways to manage state: `Lightro` and `Mastro`. Both can
 
 - **dependsOn**: Establish dependencies between states. When the dependent state changes, the current state is notified.
   ```dart
-  final dependentState = someState.mastro;
   dependentState.dependsOn(anotherState);
   ```
 
 - **compute**: Define computed values based on other states. Automatically updates when the source states change.
   ```dart
-  final computedState = someState.mastro;
-  computedState.compute(() => anotherState.value * 2);
+  final someState = 10.mastro;
+  final computedState = someState.compute((value) => value * 5);
   ```
 
 - **setValidator**: Set validation logic for a state. Ensures that the state value meets certain criteria.
   ```dart
-  final validatedState = someState.mastro;
+  final validatedState = 2.mastro;
   validatedState.setValidator((value) => value > 0);
+
+  validatedState.value = 1; // this will be accepted
+  validatedState.value = -1; // this will be ignored
   ```
 
 - **observe**: Observe changes in the state and execute a callback when the state changes.
   ```dart
-  final observedState = someState.mastro;
   observedState.observe((value) {
     print('State changed to $value');
   });
@@ -128,11 +129,12 @@ Mastro offers two primary ways to manage state: `Lightro` and `Mastro`. Both can
 
 | Feature                  | Lightro  | Mastro |
 |--------------------------|----------|--------|
+| Modify method            | ✅       | ✅      |
 | Dependencies             | ❌       | ✅      |
 | Computed values          | ❌       | ✅      |
 | Validation               | ❌       | ✅      |
 | Observers                | ❌       | ✅      |
-| Modify method            | ✅       | ✅      |
+
 
 ### 3. Persistent Storage
 
@@ -312,6 +314,11 @@ Mastro provides builder widgets to create reactive UIs.
 
 - **Purpose**: Build widgets that automatically update when the state changes.
 - **Usage**: Use `MastroBuilder` to wrap widgets that depend on a state.
+- **Parameters**:
+  - `state`: The state object that the widget depends on.
+  - `builder`: A function that builds the widget based on the current state.
+  - `listeners` (optional): A list of additional state objects to listen to. If any of these states change, the widget will rebuild.
+  - `shouldRebuild` (optional): A function that determines whether the widget should rebuild when the state changes. It takes the previous and current state values as arguments and returns a boolean. If not provided, the widget will rebuild on every state change.
 - **Example**:
   ```dart
   MastroBuilder(
@@ -430,7 +437,7 @@ Mastro provides a way to manage app-wide behaviors using scopes, particularly us
   );
   ```
 
-## Global vs. Local Usage
+## Global vs. Local Box Usage
 
 - **Global Usage**: Use `MultiBoxProvider` to define `MastroBox` instances that can be accessed from anywhere in the app. This is useful for app-wide settings or data that needs to be shared across multiple screens.
   
