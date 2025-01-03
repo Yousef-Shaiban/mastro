@@ -1,25 +1,13 @@
-import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:mastro/core/builders.dart';
+
 import 'state.dart';
 
 class MastroTriggerable {
   final _state = false.mastro;
-  Timer? _debounceTimer;
 
-  void trigger({Duration? debounce}) {
-    _debounceTimer?.cancel();
+  void trigger() => _state.toggle();
 
-    if (debounce != null) {
-      _debounceTimer = Timer(debounce, () {
-        _state.value = !_state.value;
-      });
-    } else {
-      _state.value = !_state.value;
-    }
-  }
-
-  void dispose() {
-    _debounceTimer?.cancel();
-  }
-
-  Mastro get mastro => _state;
+  Widget build(Widget Function() builder) =>
+      MastroBuilder(state: _state, builder: (_, __) => builder());
 }

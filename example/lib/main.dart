@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mastro/mastro.dart';
 import 'package:mastro_example/features/notes/presentation/notes_view.dart';
 
+import 'features/notes/logic/notes_box.dart';
+
 // Initialize the app with persistent storage
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,6 +12,13 @@ void main() async {
 
   runApp(MaterialApp(
     theme: ThemeData(useMaterial3: true),
-    home: NotesView(),
+    home: MultiBoxProvider(
+      providers: [
+        BoxProvider(
+          create: (context) => NotesBox(),
+        )
+      ],
+      child: const NotesView(),
+    ),
   ));
 }

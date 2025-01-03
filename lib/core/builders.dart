@@ -50,18 +50,18 @@ class _TagBuilderState extends State<TagBuilder> {
 }
 
 class MastroBuilder<T> extends StatefulWidget {
-  final Basetro<T> mastro;
-  final Widget Function(Basetro<T> mastro, BuildContext context) builder;
+  final Basetro<T> state;
+  final Widget Function(Basetro<T> state, BuildContext context) builder;
   final List<Basetro<dynamic>>? listeners;
   final bool Function(T previous, T current)? shouldRebuild;
 
   const MastroBuilder({
-    Key? key,
-    required this.mastro,
+    super.key,
+    required this.state,
     required this.builder,
     this.listeners,
     this.shouldRebuild,
-  }) : super(key: key);
+  });
 
   @override
   State<MastroBuilder<T>> createState() => _MastroBuilderState<T>();
@@ -73,7 +73,7 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
   void _updateState() async {
     if (!context.mounted) return;
 
-    final currentValue = widget.mastro.value;
+    final currentValue = widget.state.value;
     if (widget.shouldRebuild?.call(_previousValue as T, currentValue) ?? true) {
       if (SchedulerBinding.instance.schedulerPhase != SchedulerPhase.idle) {
         await SchedulerBinding.instance.endOfFrame;
@@ -131,7 +131,7 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.builder(widget.mastro, context);
+    return widget.builder(widget.state, context);
   }
 }
 
@@ -142,6 +142,6 @@ extension BasetroBuilderTools<T> on Basetro<T> {
       BuildContext context,
     ) builder,
   }) {
-    return MastroBuilder(mastro: this, builder: builder);
+    return MastroBuilder(state: this, builder: builder);
   }
 }

@@ -1,22 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
 
 import 'mastrobox.dart';
 
 class BoxProvider<T extends MastroBox> extends Provider<T> {
   BoxProvider({
-    required Create<T> create,
-    Key? key,
-    Widget? child,
-    TransitionBuilder? builder,
-    lazy = true,
-  }) : super(
-            key: key,
-            child: child,
-            create: create,
-            lazy: lazy,
-            builder: builder);
+    required super.create,
+    super.key,
+    super.child,
+    super.builder,
+    super.lazy = true,
+  });
 
   static T of<T extends MastroBox>(
     BuildContext context, {
@@ -42,17 +36,12 @@ class BoxProvider<T extends MastroBox> extends Provider<T> {
 
 class ClassProvider<T> extends Provider<T> {
   ClassProvider({
-    required Create<T> create,
-    Key? key,
-    Widget? child,
-    TransitionBuilder? builder,
-    lazy = true,
-  }) : super(
-            key: key,
-            child: child,
-            create: create,
-            lazy: lazy,
-            builder: builder);
+    required super.create,
+    super.key,
+    super.child,
+    super.builder,
+    super.lazy = true,
+  });
 
   static T of<T>(
     BuildContext context, {
@@ -89,8 +78,8 @@ class ClassProvider<T> extends Provider<T> {
 
 class MultiBoxProvider extends MultiProvider {
   MultiBoxProvider({
-    required List<SingleChildWidget> providers,
-    required Widget child,
-    Key? key,
-  }) : super(key: key, providers: providers, child: child);
+    super.key,
+    required super.providers,
+    required super.child,
+  });
 }

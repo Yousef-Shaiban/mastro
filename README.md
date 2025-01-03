@@ -1,8 +1,8 @@
 # Mastro
 
-A powerful and flexible state management solution for Flutter that combines reactive programming with event handling and persistence.
+Mastro is a state management solution for Flutter that combines reactive programming with event handling and persistence. It provides a structured way to manage state, handle events, and persist data across app sessions.
 
-## Features
+## Key Features
 
 - 🎯 **Simple State Management** - Lightweight and Mastro state objects
 - 🔄 **Reactive Updates** - Efficient widget rebuilding
@@ -19,337 +19,278 @@ A powerful and flexible state management solution for Flutter that combines reac
 
 ## Installation
 
-Add Mastro to your `pubspec.yaml`:
+Add the following to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  mastro: ^1.0.0
+  mastro: <latest_version>
 ```
 
-## Initialization
+Then, run `flutter pub get` to install the package.
 
-Initialize Mastro in your main.dart:
+### 1. Initialization
+
+To use Mastro, you need to initialize it in your `main.dart` file. This setup ensures that all necessary components are ready before your app starts.
 
 ```dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await MastroInit.initialize();
-  
-  runApp(
-    MastroApp(
-      onPopScope: OnPopScope(
-        onPopWaitMessage: (context) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please wait...')),
-          );
-        },
-      ),
-      child: MaterialApp(
-        home: YourHomeWidget(),
-      ),
-    ),
-  );
+  await MastroInit.initialize(); // Initialize Mastro
+  ...
+  runApp(MastroScope(child: MaterialApp(home: YourHomeWidget())));
 }
 ```
 
-## Core Concepts
+### 2. State Management
 
-### 1. State Management
+Mastro offers two primary ways to manage state: `Lightro` and `Mastro`. Both can handle any state, but `Mastro` provides additional features.
 
-#### Lightro - Lightweight State
-For simple, single-value states:
+#### Lightro - Simple State
 
-```dart
-// Basic usage
-final counter = 0.lightro;
-final isEnabled = false.lightro;
-final name = "John".lightro;
+- **Purpose**: Manage states with a straightforward approach.
+- **Usage**: Ideal for basic state management where you need to track a single value.
+- **Example**:
+  ```dart
+  final counter = 0.lightro; // Create a simple state
 
-// Updating values
-counter.value++;
-isEnabled.toggle();
-name.value = "Jane";
+  // Update the state
+  counter.value++;
 
-// Listening to changes
-counter.addListener(() {
-  print('Counter changed: ${counter.value}');
-});
-
-// Modifying state
-name.modify((state) {
-  state.value = 'New Value';
-});
-```
+  // Reactive UI with MastroBuilder
+  MastroBuilder(
+    state: counter,
+    builder: (state, context) => Text('Counter: ${state.value}'),
+  );
+  ```
 
 #### Mastro - Advanced State
-For complex state management with computed values and validation:
 
-```dart
-// Basic usage
-final counter = 0.mastro;
-final items = <String>[].mastro;
+- **Purpose**: Manage states with additional features like dependencies, computed values, and validation.
+- **Usage**: Suitable for scenarios where state changes depend on other states or require validation.
+- **Example**:
+  ```dart
+  class User {
+    String name;
+    int age;
 
-// Computed values
-final isEven = counter.compute((value) => value % 2 == 0);
-final isEmpty = items.compute((list) => list.isEmpty);
+    User({required this.name, required this.age});
+  }
 
-// Dependencies
-counter.dependsOn(otherState);
+  final user = User(name: 'Alice', age: 30).mastro; // Create a complex state
 
-// Validation
-counter.setValidator((value) => value >= 0 && value <= 100);
-
-// Observers
-counter.observe('counterChanged', (value) {
-  print('Counter changed to: $value');
-});
-
-// Modifying collections
-items.modify((state) {
-  state.value.add('New Item');
-});
-```
-
-### 2. MastroBox Pattern
-
-MastroBox is the core container for your application's state and logic:
-
-```dart
-class TodoBox extends MastroBox<TodoEvent> {
-  // State declarations
-  final todos = PersistroMastro.list<Todo>(
-    'todos',
-    initial: [],
-    fromJson: (json) => Todo.fromJson(json),
-  );
-  final filter = TodoFilter.all.mastro;
-  final searchQuery = ''.lightro;
-
-  // Computed states
-  late final filteredTodos = todos.compute((list) {
-    return list.where((todo) {
-      final matchesFilter = filter.value.matches(todo);
-      final matchesSearch = todo.title
-          .toLowerCase()
-          .contains(searchQuery.value.toLowerCase());
-      return matchesFilter && matchesSearch;
-    }).toList();
+  // Modify the state without creating a new object
+  user.modify((state) {
+    state.value.name = 'Bob';
+    state.value.age = 31;
   });
 
-  @override
-  void init() {
-    // Setup dependencies
-    filteredTodos.dependsOn(filter);
-    filteredTodos.dependsOn(searchQuery);
-
-    // Debug logging
-    todos.debugLog('todos');
-    filter.debugLog('filter');
-  }
-}
-```
-
-### 3. Event Handling
-
-Events provide a structured way to handle state changes:
-
-```dart
-// Event definitions
-sealed class TodoEvent extends MastroEvent<TodoBox> {
-  const TodoEvent();
-  
-  factory TodoEvent.add(String title) = _AddTodoEvent;
-  factory TodoEvent.toggle(String id) = _ToggleTodoEvent;
-  factory TodoEvent.delete(String id) = _DeleteTodoEvent;
-  factory TodoEvent.reorder(String id, int newIndex) = _ReorderTodoEvent;
-}
-
-// Event implementations
-class _AddTodoEvent extends TodoEvent {
-  final String title;
-  
-  const _AddTodoEvent(this.title);
-
-  @override
-  EventRunningMode get mode => EventRunningMode.sequential;
-
-  @override
-  Future<void> implement(TodoBox box, Callbacks callbacks) async {
-    final todo = Todo(
-      id: DateTime.now().toString(),
-      title: title,
-      completed: false,
-    );
-    
-    box.todos.modify((state) {
-      state.value.add(todo);
-    });
-    
-    callbacks.invoke('todoAdded', data: {'id': todo.id});
-  }
-}
-
-// Using events with callbacks
-todoBox.addEvent(
-  TodoEvent.add('New Todo'),
-  callbacks: Callbacks({
-    'todoAdded': ({data}) {
-      print('Todo added with ID: ${data?['id']}');
-    },
-  }),
-);
-```
-
-### 4. Persistent Storage
-
-Mastro provides built-in persistence capabilities:
-
-```dart
-class SettingsBox extends MastroBox<SettingsEvent> {
-  // Primitive persistence
-  final isDarkMode = PersistroLightro.boolean(
-    'isDarkMode',
-    initial: false,
-    autoSave: true,
-  );
-  
-  final fontSize = PersistroLightro.number(
-    'fontSize',
-    initial: 16,
-  );
-  
-  // Complex object persistence
-  final userPreferences = PersistroMastro<UserPreferences>(
-    'userPreferences',
-    initial: UserPreferences.defaults(),
-    decoder: (json) => UserPreferences.fromJson(jsonDecode(json)),
-    encoder: (value) => jsonEncode(value.toJson()),
-  );
-  
-  // List persistence
-  final recentSearches = PersistroMastro.list<String>(
-    'recentSearches',
-    initial: [],
-    fromJson: (json) => json as String,
-  );
-  
-  // Map persistence
-  final cachedData = PersistroMastro.map<String>(
-    'cachedData',
-    initial: {},
-    fromJson: (json) => json as String,
-  );
-}
-```
-
-### 5. Widget Building Patterns
-
-#### MastroBuilder
-For reactive widget updates:
-
-```dart
-// Single state
-MastroBuilder(
-  mastro: counter,
-  builder: (state, context) => Text('${state.value}'),
-);
-
-// Multiple states
-MastroBuilder(
-  mastro: counter,
-  listeners: [isEven, isActive],
-  builder: (state, context) => Text(
-    'Count: ${state.value} (${isEven.value ? "Even" : "Odd"})',
-  ),
-);
-
-// Conditional rebuilds
-MastroBuilder(
-  mastro: counter,
-  shouldRebuild: (prev, current) => prev != current,
-  builder: (state, context) => Text('${state.value}'),
-);
-```
-
-#### TagBuilder
-For targeted widget updates:
-
-```dart
-TagBuilder(
-  tag: 'updateTodo',
-  box: todoBox,
-  builder: (context) => AnimatedBuilder(
-    animation: _controller,
-    builder: (context, child) => FadeTransition(
-      opacity: _fadeAnimation,
-      child: child,
+  // Reactive UI with MastroBuilder
+  MastroBuilder(
+    state: user,
+    builder: (state, context) => Column(
+      children: [
+        Text('Name: ${state.value.name}'),
+        Text('Age: ${state.value.age}'),
+      ],
     ),
-  ),
-);
+  );
+  ```
 
-// Trigger update
-todoBox.tag(
-  tag: 'updateTodo',
-  data: {'id': 'todo-123'},
-);
-```
+#### Mastro Functions
 
-### 6. MastroView Pattern
+- **dependsOn**: Establish dependencies between states. When the dependent state changes, the current state is notified.
+  ```dart
+  final dependentState = someState.mastro;
+  dependentState.dependsOn(anotherState);
+  ```
 
-MastroView provides a structured way to create screens with lifecycle management:
+- **compute**: Define computed values based on other states. Automatically updates when the source states change.
+  ```dart
+  final computedState = someState.mastro;
+  computedState.compute(() => anotherState.value * 2);
+  ```
 
-```dart
-class TodoView extends MastroView<TodoBox> {
-  TodoView({super.key}) : super(box: TodoBox());
+- **setValidator**: Set validation logic for a state. Ensures that the state value meets certain criteria.
+  ```dart
+  final validatedState = someState.mastro;
+  validatedState.setValidator((value) => value > 0);
+  ```
 
-  @override
-  void initState(BuildContext context, TodoBox box) {
-    // Initialize view-specific logic
+- **observe**: Observe changes in the state and execute a callback when the state changes.
+  ```dart
+  final observedState = someState.mastro;
+  observedState.observe((value) {
+    print('State changed to $value');
+  });
+  ```
+
+#### Differences Between Lightro and Mastro
+
+| Feature                  | Lightro  | Mastro |
+|--------------------------|----------|--------|
+| Dependencies             | ❌       | ✅      |
+| Computed values          | ❌       | ✅      |
+| Validation               | ❌       | ✅      |
+| Observers                | ❌       | ✅      |
+| Modify method            | ✅       | ✅      |
+
+### 3. Persistent Storage
+
+#### Persistro Class
+
+- **Purpose**: Provides a base for persistent storage using `SharedPreferences`.
+- **Usage**: Can be used directly for custom persistence logic.
+- **Example**:
+  ```dart
+  // Direct usage example
+  Future<void> saveCustomData(String key, String value) async {
+    await Persistro.putString(key, value);
   }
 
-  @override
-  void onResume(BuildContext context, TodoBox box) {
-    // Called when app resumes
-    box.addEvent(TodoEvent.refresh());
+  Future<String?> loadCustomData(String key) async {
+    return await Persistro.getString(key);
   }
+  ```
 
-  @override
-  Widget build(BuildContext context, TodoBox box) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Todos'),
-        actions: [
-          MastroBuilder(
-            mastro: box.filter,
-            builder: (filter, context) => DropdownButton<TodoFilter>(
-              value: filter.value,
-              onChanged: (value) => filter.value = value!,
-              items: TodoFilter.values.map((f) => 
-                DropdownMenuItem(
-                  value: f,
-                  child: Text(f.name),
-                ),
-              ).toList(),
-            ),
-          ),
-        ],
-      ),
-      body: MastroBuilder(
-        mastro: box.filteredTodos,
-        builder: (todos, context) => ListView.builder(
-          itemCount: todos.value.length,
-          itemBuilder: (context, index) {
-            final todo = todos.value[index];
-            return TodoItem(todo: todo);
-          },
-        ),
+#### PersistroMastro and PersistroLightro
+
+These classes extend the functionality of `Mastro` and `Lightro` by adding persistence capabilities, allowing state data to be saved and restored across app sessions.
+
+- **PersistroLightro**:
+  - **Purpose**: Manage simple, single-value states with persistence.
+  - **Usage**: Ideal for persisting basic settings or preferences.
+  - **Example**:
+    ```dart
+    final isDarkMode = PersistroLightro.boolean('isDarkMode', initial: false); // Persistent boolean state
+
+    // Toggle dark mode
+    isDarkMode.toggle();
+
+    // Reactive UI with MastroBuilder
+    MastroBuilder(
+      state: isDarkMode,
+      builder: (state, context) => Text('Dark Mode: ${state.value ? "On" : "Off"}'),
+    );
+    ```
+
+- **PersistroMastro**:
+  - **Purpose**: Manage complex states with persistence, including lists and maps.
+  - **Usage**: Suitable for persisting collections or objects with multiple properties.
+  - **Example**:
+    ```dart
+    final notes = PersistroMastro.list<Note>(
+      'notes',
+      initial: [],
+      fromJson: (json) => Note.fromJson(json),
+    );
+
+    // Add a new note
+    notes.modify((state) {
+      state.value.add(Note(
+        id: '1',
+        title: 'New Note',
+        content: 'This is a new note.',
+        createdAt: DateTime.now(),
+      ));
+    });
+
+    // Reactive UI with MastroBuilder
+    MastroBuilder(
+      state: notes,
+      builder: (state, context) => ListView.builder(
+        itemCount: state.value.length,
+        itemBuilder: (context, index) {
+          final note = state.value[index];
+          return ListTile(title: Text(note.title));
+        },
       ),
     );
-  }
-}
-```
+    ```
 
-### 7. Advanced Features
+### 4. MastroBox Pattern
+
+MastroBox is the core container for your application's state and logic.
+
+- **Purpose**: Organize state and business logic in a structured way.
+- **Usage**: Extend `MastroBox` to create a container for your app's state and logic.
+- **Example**:
+  ```dart
+  class NotesBox extends MastroBox<NotesEvent> {
+    final notes = PersistroMastro.list<Note>(
+      'notes',
+      initial: [],
+      fromJson: (json) => Note.fromJson(json),
+    );
+
+    @override
+    void init() {
+      notes.debugLog();
+    }
+  }
+  ```
+
+### 5. BoxProviders
+
+`BoxProvider` and `MultiBoxProvider` are used to manage the lifecycle of `MastroBox` instances and provide them to the widget tree.
+
+#### BoxProvider
+
+- **Purpose**: Provides a single `MastroBox` instance to the widget tree.
+- **Usage**: Use `BoxProvider` when you need to provide a single box to a subtree.
+- **Example**:
+  ```dart
+  BoxProvider<NotesBox>(
+    create: (_) => NotesBox(),
+    child: NotesView(),
+  );
+  ```
+
+#### MultiBoxProvider
+
+- **Purpose**: Provides multiple `MastroBox` instances to the widget tree.
+- **Usage**: Use `MultiBoxProvider` when you need to provide multiple boxes to a subtree.
+- **Example**:
+  ```dart
+  MultiBoxProvider(
+    providers: [
+      BoxProvider(create: (_) => NotesBox()),
+      BoxProvider(create: (_) => AnotherBox()),
+    ],
+    child: MyApp(),
+  );
+  ```
+
+### 6. Event Handling
+
+Events in Mastro provide a structured way to handle actions and state changes.
+
+- **Purpose**: Define and handle events that modify the state.
+- **Usage**: Create event classes that extend `MastroEvent` and implement the `implement` method.
+- **Example**:
+  ```dart
+  sealed class NotesEvent extends MastroEvent<NotesBox> {
+    const NotesEvent();
+    factory NotesEvent.add(String title, String content) = _AddNoteEvent;
+  }
+
+  class _AddNoteEvent extends NotesEvent {
+    final String title;
+    final String content;
+
+    _AddNoteEvent(this.title, this.content);
+
+    @override
+    Future<void> implement(NotesBox box, Callbacks callbacks) async {
+      final note = Note(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        title: title,
+        content: content,
+        createdAt: DateTime.now(),
+      );
+      box.notes.modify((notes) => notes.value.add(note));
+    }
+  }
+  ```
 
 #### Event Modes
 ```dart
@@ -363,218 +304,146 @@ class ComplexEvent extends MastroEvent<AppBox> {
 }
 ```
 
-#### State Validation
-```dart
-final password = ''.mastro
-  ..setValidator((value) {
-    if (value.length < 8) return false;
-    if (!value.contains(RegExp(r'[A-Z]'))) return false;
-    if (!value.contains(RegExp(r'[0-9]'))) return false;
-    return true;
-  });
+### 7. Widget Building
 
-// Invalid updates are ignored
-password.value = '123'; // Value remains unchanged
-```
+Mastro provides builder widgets to create reactive UIs.
 
-#### Debug Tools
-```dart
-// State logging
-counter.debugLog('counter');
+#### MastroBuilder
 
-// Custom observers
-counter.observe('analytics', (value) {
-  analytics.logEvent('counter_changed', {'value': value});
-});
-
-// Test helpers
-class TestTodoBox extends TestMastroBox<TodoEvent> {
-  // Access event history
-  void verifyEvents() {
-    final history = eventHistory;
-    expect(history.length, 2);
-    expect(history.first, isA<_AddTodoEvent>());
-  }
-}
-```
-
-## Best Practices
-
-### 1. State Organization
-
-```dart
-class UserBox extends MastroBox<UserEvent> {
-  // Group related states
-  final user = PersistroMastro<User>(
-    'user',
-    initial: User.empty(),
-    decoder: User.fromJson,
-    encoder: (u) => u.toJson(),
+- **Purpose**: Build widgets that automatically update when the state changes.
+- **Usage**: Use `MastroBuilder` to wrap widgets that depend on a state.
+- **Example**:
+  ```dart
+  MastroBuilder(
+    state: counter,
+    builder: (state, context) => Text('Counter: ${state.value}'),
   );
-  
-  // Derived states
-  late final isLoggedIn = user.compute((u) => u.id.isNotEmpty);
-  late final displayName = user.compute((u) => 
-    u.nickname.isNotEmpty ? u.nickname : u.email);
-    
-  // UI states
-  final isLoading = false.lightro;
-  final errorMessage = ''.lightro;
-  
-  @override
-  void init() {
-    // Setup dependencies
-    displayName.dependsOn(user);
-    
-    // Debug logging
-    user.debugLog('user');
-  }
-}
-```
+  ```
 
-### 2. Event Handling
+#### TagBuilder
 
-```dart
-// Event hierarchy
-sealed class UserEvent extends MastroEvent<UserBox> {
-  const UserEvent();
-  
-  // Authentication events
-  factory UserEvent.login(String email, String password) = _LoginEvent;
-  factory UserEvent.logout() = _LogoutEvent;
-  
-  // Profile events
-  factory UserEvent.updateProfile(UserProfile profile) = _UpdateProfileEvent;
-  factory UserEvent.changePassword(String current, String new) = _ChangePasswordEvent;
-}
+- **Purpose**: Rebuild parts of the UI by calling `box.tag` to trigger updates for specific tags.
+- **Usage**: Use `TagBuilder` to create widgets that needs to be rebuild when a specific tag is triggered.
+- **Example**:
+  ```dart
+  TagBuilder(
+    tag: 'important',
+    builder: (context) => Text('This is an important update!'),
+  );
 
-// Error handling
-class _LoginEvent extends UserEvent {
-  final String email;
-  final String password;
-  
-  const _LoginEvent(this.email, this.password);
-  
-  @override
-  Future<void> implement(UserBox box, Callbacks callbacks) async {
-    try {
-      box.isLoading.value = true;
-      box.errorMessage.value = '';
-      
-      final user = await authService.login(email, password);
-      box.user.value = user;
-      
-      callbacks.invoke('loginSuccess');
-    } catch (e) {
-      box.errorMessage.value = e.toString();
-      callbacks.invoke('loginError', data: {'error': e});
-    } finally {
-      box.isLoading.value = false;
+  // Trigger a rebuild for the 'important' tag
+  box.tag('important');
+  ```
+
+### 8. MastroView Pattern
+
+MastroView provides a structured way to create screens with lifecycle management.
+
+- **Purpose**: Manage the lifecycle of a screen and its associated state.
+- **Usage**: Extend `MastroView` to create a screen with lifecycle hooks.
+
+#### Using Local Box
+
+- **Example**:
+  ```dart
+  class LocalNotesView extends MastroView<NotesBox> {
+    LocalNotesView({super.key}) : super(box: NotesBox());
+
+    @override
+    Widget build(BuildContext context, NotesBox box) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Local Notes')),
+        body: MastroBuilder(
+          state: box.notes,
+          builder: (notes, context) => ListView.builder(
+            itemCount: notes.value.length,
+            itemBuilder: (context, index) {
+              final note = notes.value[index];
+              return ListTile(title: Text(note.title));
+            },
+          ),
+        ),
+      );
     }
   }
-}
-```
+  ```
 
-### 3. Widget Structure
+#### Using BoxProvider
 
-```dart
-// Reusable components
-class UserAvatar extends StatelessWidget {
-  final UserBox box;
-  
-  const UserAvatar({super.key, required this.box});
-  
-  @override
-  Widget build(BuildContext context) {
-    return MastroBuilder(
-      mastro: box.user,
-      builder: (user, context) => CircleAvatar(
-        backgroundImage: NetworkImage(user.value.avatarUrl),
-        child: user.value.isOnline
-            ? const Badge(
-                backgroundColor: Colors.green,
-                alignment: Alignment.bottomRight,
-              )
-            : null,
-      ),
-    );
-  }
-}
+- **Example**:
+  ```dart
+  class GlobalNotesView extends MastroView<NotesBox> {
+    const GlobalNotesView({super.key});
 
-// Page organization
-class ProfileView extends MastroView<UserBox> {
-  ProfileView({super.key}) : super(box: UserBox());
-  
-  @override
-  Widget build(BuildContext context, UserBox box) {
-    return Scaffold(
-      appBar: AppBar(
-        title: MastroBuilder(
-          mastro: box.displayName,
-          builder: (name, context) => Text(name.value),
+    @override
+    Widget build(BuildContext context, NotesBox box) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Global Notes')),
+        body: MastroBuilder(
+          state: box.notes,
+          builder: (notes, context) => ListView.builder(
+            itemCount: notes.value.length,
+            itemBuilder: (context, index) {
+              final note = notes.value[index];
+              return ListTile(title: Text(note.title));
+            },
+          ),
         ),
-        actions: [
-          UserAvatar(box: box),
-        ],
-      ),
-      body: MastroBuilder(
-        mastro: box.isLoading,
-        builder: (loading, context) {
-          if (loading.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return const ProfileContent();
+      );
+    }
+  }
+  ```
+
+### 9. Scopes
+
+Mastro provides a way to manage app-wide behaviors using scopes, particularly useful when handling events that block user interactions.
+
+#### OnPopScope
+
+- **Purpose**: Manage user interactions during blocking events within `MastroScope`.
+- **Usage**: Use `OnPopScope` to define behavior when an event blocks user interactions.
+- **Example**:
+  ```dart
+  MaterialApp(
+    home: MastroScope(
+      onPopScope: OnPopScope(
+        onPopWaitMessage: (context) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please wait...')),
+          );
         },
       ),
-    );
-  }
-}
-```
+      child: YourHomeWidget(),
+    ),
+  );
+  ```
 
-## Testing
+#### addEventBlockPop
 
-```dart
-void main() {
-  group('TodoBox Tests', () {
-    late TestTodoBox box;
-    
-    setUp(() {
-      box = TestTodoBox();
-    });
-    
-    test('Add Todo', () async {
-      await box.addEvent(TodoEvent.add('Test Todo'));
-      
-      expect(box.todos.value.length, 1);
-      expect(box.todos.value.first.title, 'Test Todo');
-      
-      // Verify event history
-      expect(box.eventHistory.length, 1);
-      expect(box.eventHistory.first, isA<_AddTodoEvent>());
-    });
-    
-    test('Sequential Events', () async {
-      // Queue multiple events
-      box.addEvent(TodoEvent.add('Todo 1'));
-      box.addEvent(TodoEvent.add('Todo 2'));
-      
-      // Wait for all events to process
-      await Future.delayed(Duration.zero);
-      
-      expect(box.todos.value.length, 2);
-      expect(
-        box.todos.value.map((t) => t.title),
-        ['Todo 1', 'Todo 2'],
-      );
-    });
-  });
-}
-```
+- **Purpose**: Execute events that block user interactions until completion.
+- **Usage**: Use `addEventBlockPop` to run events that should prevent user actions until they finish.
+- **Example**:
+  ```dart
+  await box.addEventBlockPop(
+    context,
+    NotesEvent.add('New Note', 'This is a new note'),
+  );
+  ```
+
+## Global vs. Local Usage
+
+- **Global Usage**: Use `MultiBoxProvider` to define `MastroBox` instances that can be accessed from anywhere in the app. This is useful for app-wide settings or data that needs to be shared across multiple screens.
+  
+- **Local Usage**: Pass a `MastroBox` instance directly to a `MastroView` for data that is only relevant to a particular screen or widget.
+
+## Examples
+
+Check the `example` folder for more detailed examples of how to use Mastro in your Flutter app.
 
 ## Contributions
 
 Contributions are welcome! If you have any ideas, suggestions, or bug reports, please open an issue or submit a pull request on [GitHub](https://github.com/Yousef-Shaiban/pressable).
 
-##  License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.

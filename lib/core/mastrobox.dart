@@ -33,27 +33,33 @@ abstract class MastroBox<T extends MastroEvent> {
     _cleanupCallbacks();
   }
 
-  void tag({required String tag, Map<String, dynamic>? data}) {
-    _cleanupCallbacks();
-    if (_subTagCallbacks.containsKey(tag)) {
-      _subTagCallbacks[tag]?.target?.call(data: data);
-    }
+  void tag({required String tag}) {
     _subTagTrigger.nonNotifiableSetter = tag;
     _subTagTrigger.notify();
   }
 
   Mastro get taggable => _subTagTrigger;
 
-  void registerTagCallback(
-      {required String tag,
-      required void Function({Map<String, dynamic>? data}) callback}) {
+  void trigger({required String id, Map<String, dynamic>? data}) {
     _cleanupCallbacks();
-    _subTagCallbacks[tag] = WeakReference(callback);
+    if (_subTagCallbacks.containsKey(id)) {
+      _subTagCallbacks[id]?.target?.call(data: data);
+    }
   }
 
-  void unregisterTagCallback({required String tag}) {
+  void registerCallback({
+    required String id,
+    required void Function({Map<String, dynamic>? data}) callback,
+  }) {
     _cleanupCallbacks();
-    _subTagCallbacks.remove(tag);
+    _subTagCallbacks[id] = WeakReference(callback);
+  }
+
+  void unregisterCallback({
+    required String id,
+  }) {
+    _cleanupCallbacks();
+    _subTagCallbacks.remove(id);
   }
 
   Future<void> _awaitLoading(
@@ -62,11 +68,11 @@ abstract class MastroBox<T extends MastroEvent> {
     if (popScope == null) {
       throw StateError(
         ''
-        'Cannot execute BlockPop events without MastroApp!\n\n'
-        'Please wrap your app with MastroApp and provide an OnPopScope:\n\n'
+        'Cannot execute BlockPop events without MastroScope!\n\n'
+        'Please wrap your app with MastroScope and provide an OnPopScope:\n\n'
         'void main() {\n'
         '  runApp(MaterialApp(\n'
-        '    home: MastroApp(\n'
+        '    home: MastroScope(\n'
         '      onPopScope: OnPopScope(\n'
         '        onPopWaitMessage: () {\n'
         '          // Your loading message logic\n'

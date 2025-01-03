@@ -84,7 +84,7 @@ class _MastroViewState<T extends MastroBox> extends State<MastroView>
         final popScope = ClassProvider.ofNullable<OnPopScope>(context);
         return popScope != null
             ? MastroBuilder(
-                mastro: popScope.isLoading,
+                state: popScope.isLoading,
                 builder: (state, context) => PopScope(
                   canPop: !state.value,
                   onPopInvokedWithResult: (didPop, result) {
@@ -125,33 +125,6 @@ class StaticWidgetProvider extends StatelessWidget {
   final Widget Function(Widget seed) builder;
 
   const StaticWidgetProvider({
-    super.key,
-    required this.seed,
-    required this.builder,
-  });
-
-  @override
-  Widget build(BuildContext context) => builder(seed);
-}
-
-/// A widget that provides a dynamic widget builder and allows transformation through a builder function.
-///
-/// Use this when you need to wrap or modify a widget builder that requires additional input.
-///
-/// Example:
-/// ```dart
-/// DynamicWidgetProvider(
-///   seed: (factor) => Text('Value: $factor'),
-///   builder: (seed) => ListView.builder(
-///     itemBuilder: (context, index) => seed(index),
-///   ),
-/// )
-/// ```
-class DynamicWidgetProvider<T> extends StatelessWidget {
-  final Widget Function(T factor) seed;
-  final Widget Function(Widget Function(T factor) seed) builder;
-
-  const DynamicWidgetProvider({
     super.key,
     required this.seed,
     required this.builder,

@@ -4,12 +4,12 @@ import 'package:mastro/mastro.dart';
 import '../logic/notes_box.dart';
 
 class NotesView extends MastroView<NotesBox> {
-  NotesView({super.key}) : super(box: NotesBox());
+  const NotesView({super.key});
 
   @override
   Widget build(BuildContext context, NotesBox box) {
     return MastroBuilder(
-      mastro: box.isDarkMode,
+      state: box.isDarkMode,
       builder: (darkMode, context) => Theme(
         data: ThemeData(
           useMaterial3: true,
@@ -24,7 +24,7 @@ class NotesView extends MastroView<NotesBox> {
                 onPressed: () => darkMode.toggle(),
               ),
               MastroBuilder(
-                mastro: box.sortByPinned,
+                state: box.sortByPinned,
                 builder: (sort, context) => IconButton(
                   icon: Icon(
                       sort.value ? Icons.push_pin : Icons.push_pin_outlined),
@@ -34,7 +34,7 @@ class NotesView extends MastroView<NotesBox> {
             ],
           ),
           body: MastroBuilder(
-            mastro: box.notes,
+            state: box.notes,
             builder: (notes, context) => ListView.builder(
               itemCount: box.sortedNotes.length,
               itemBuilder: (context, index) {

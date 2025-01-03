@@ -49,7 +49,7 @@ abstract class Basetro<T> with ChangeNotifier {
 }
 
 class Lightro<T> extends Basetro<T> {
-  Lightro.of(T data) : super(data);
+  Lightro.of(super.data);
 }
 
 class Mastro<T> extends Basetro<T> {
@@ -109,7 +109,7 @@ class Mastro<T> extends Basetro<T> {
     super.dispose();
   }
 
-  Mastro.of(T data) : super(data);
+  Mastro.of(super.data);
 
   @override
   void notify() {
@@ -122,9 +122,20 @@ class Mastro<T> extends Basetro<T> {
   }
 
   @override
+  set nonNotifiableSetter(T value) {
+    if (_validator?.call(value) ?? true) {
+      super.nonNotifiableSetter = value;
+    } else {
+      log('Mastro<${T.runtimeType}> validator failed for value: $value');
+    }
+  }
+
+  @override
   set value(T newValue) {
     if (_validator?.call(newValue) ?? true) {
       super.value = newValue;
+    } else {
+      log('Mastro<${T.runtimeType}> validator failed for value: $newValue');
     }
   }
 }

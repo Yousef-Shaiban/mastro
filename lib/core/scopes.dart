@@ -10,10 +10,10 @@ class OnPopScope {
   OnPopScope({required this.onPopWaitMessage});
 }
 
-class MastroApp extends StatelessWidget {
+class MastroScope extends StatelessWidget {
   final OnPopScope? onPopScope;
   final Widget child;
-  const MastroApp({super.key, this.onPopScope, required this.child});
+  const MastroScope({super.key, this.onPopScope, required this.child});
 
   @override
   Widget build(BuildContext context) {
