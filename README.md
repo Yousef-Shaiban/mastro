@@ -3,21 +3,21 @@
 Mastro is a state management solution for Flutter that combines reactive programming with event handling and persistence. It provides a structured way to manage state, handle events, and persist data across app sessions.
 
 # Table of Contents
-- [Key Features](#key-features)
-- [Installation](#installation)
-- [1. Initialization](#1-initialization)
-- [2. State Management](#2-state-management)
-- [3. Persistent Storage](#3-persistent-storage)
-- [4. MastroBox Pattern](#4-mastrobox-pattern)
-- [5. BoxProviders](#5-boxproviders)
-- [6. Event Handling](#6-event-handling)
-- [7. Widget Building](#7-widget-building)
-- [8. MastroView Pattern](#8-mastroview-pattern)
-- [9. Scopes](#9-scopes)
-- [Project Structure](#project-structure)
-- [Examples](#examples)
-- [Contributions](#contributions)
-- [License](#license)
+- [1. Key Features](#key-features)
+- [2. Installation](#installation)
+- [3. Initialization](#1-initialization)
+- [4. State Management](#2-state-management)
+- [5. Persistent Storage](#3-persistent-storage)
+- [6. MastroBox Pattern](#4-mastrobox-pattern)
+- [7. BoxProviders](#5-boxproviders)
+- [8. Event Handling](#6-event-handling)
+- [9. Widget Building](#7-widget-building)
+- [10. MastroView Pattern](#8-mastroview-pattern)
+- [11. Scopes](#9-scopes)
+- [12. Project Structure](#project-structure)
+- [13. Examples](#examples)
+- [14. Contributions](#contributions)
+- [15. License](#license)
 
 ## Key Features
 

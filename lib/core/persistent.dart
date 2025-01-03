@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'init.dart';
 import 'state.dart';
 
+/// Provides persistent storage functionality using SharedPreferences.
 class Persistro {
   const Persistro._();
 
@@ -39,51 +40,69 @@ class Persistro {
     return MastroInit.persistro;
   }
 
+  /// Stores a string value.
   static Future<void> putString(String key, String value) async {
     await _sharedPreferences.setString(key, value);
   }
 
+  /// Stores an integer value.
   static Future<void> putInt(String key, int value) async {
     await _sharedPreferences.setInt(key, value);
   }
 
+  /// Stores a double value.
   static Future<void> putDouble(String key, double value) async {
     await _sharedPreferences.setDouble(key, value);
   }
 
+  /// Stores a boolean value.
   static Future<void> putBool(String key, bool value) async {
     await _sharedPreferences.setBool(key, value);
   }
 
+  /// Stores a list of strings.
   static Future<void> putStringList(String key, List<String> value) async {
     await _sharedPreferences.setStringList(key, value);
   }
 
+  /// Retrieves a stored string value.
   static Future<String?> getString(String key) async {
     return _sharedPreferences.getString(key);
   }
 
+  /// Retrieves a stored integer value.
   static Future<int?> getInt(String key) async {
     return _sharedPreferences.getInt(key);
   }
 
+  /// Retrieves a stored double value.
   static Future<double?> getDouble(String key) async {
     return _sharedPreferences.getDouble(key);
   }
 
+  /// Retrieves a stored boolean value.
   static Future<bool?> getBool(String key) async {
     return _sharedPreferences.getBool(key);
   }
 
+  /// Retrieves a stored list of strings.
   static Future<List<String>?> getStringList(String key) async {
     return _sharedPreferences.getStringList(key);
   }
 }
 
+/// Mixin that adds persistence capabilities to state objects.
 mixin PersistroMixin<T> on Basetro<T> {
+  /// Unique key for storing this state.
   String get key;
+
+  /// Function to decode stored string into value of type T.
   T Function(String) get decoder;
+
+  /// Function to encode value of type T into string.
   String Function(T) get encoder;
+
+  /// Whether to automatically save on changes.
   bool get autoSave;
 
   bool _isRestoring = false;
@@ -91,6 +110,7 @@ mixin PersistroMixin<T> on Basetro<T> {
 
   SharedPreferences get _sharedPreferences => MastroInit.persistro;
 
+  /// Initializes the persistence system.
   void initPersistence() {
     if (!MastroInit.isInitialized) {
       try {
@@ -133,6 +153,7 @@ mixin PersistroMixin<T> on Basetro<T> {
     }
   }
 
+  /// Persists the current value.
   Future<void> persist() async {
     try {
       final data = encoder(value);
@@ -144,6 +165,7 @@ mixin PersistroMixin<T> on Basetro<T> {
     }
   }
 
+  /// Restores the persisted value.
   Future<void> restore() async {
     try {
       final data = _sharedPreferences.getString(key);
@@ -159,6 +181,7 @@ mixin PersistroMixin<T> on Basetro<T> {
     }
   }
 
+  /// Clears the persisted value.
   Future<void> clear() async {
     try {
       await _sharedPreferences.remove(key);
@@ -170,6 +193,7 @@ mixin PersistroMixin<T> on Basetro<T> {
     }
   }
 
+  /// Cleans up persistence resources.
   void disposePersistence() {
     if (autoSave) {
       removeListener(_handleAutoSave);
@@ -183,7 +207,7 @@ mixin PersistroMixin<T> on Basetro<T> {
   }
 }
 
-// Persistent Mastro implementation
+/// Persistent version of Mastro state container.
 class PersistroMastro<T> extends Mastro<T> with PersistroMixin<T> {
   @override
   final String key;
@@ -194,6 +218,7 @@ class PersistroMastro<T> extends Mastro<T> with PersistroMixin<T> {
   @override
   final bool autoSave;
 
+  /// Creates a persistent Mastro state container.
   PersistroMastro({
     required T initial,
     required this.key,
@@ -204,7 +229,7 @@ class PersistroMastro<T> extends Mastro<T> with PersistroMixin<T> {
     initPersistence();
   }
 
-  // Factory constructors for MastroPersistro
+  /// Creates a persistent numeric state container.
   static PersistroMastro<num> number(
     String key, {
     num initial = 0.0,
@@ -219,6 +244,7 @@ class PersistroMastro<T> extends Mastro<T> with PersistroMixin<T> {
     );
   }
 
+  /// Creates a persistent string state container.
   static PersistroMastro<String> string(
     String key, {
     String initial = '',
@@ -233,6 +259,7 @@ class PersistroMastro<T> extends Mastro<T> with PersistroMixin<T> {
     );
   }
 
+  /// Creates a persistent boolean state container.
   static PersistroMastro<bool> boolean(
     String key, {
     bool initial = false,
@@ -247,6 +274,7 @@ class PersistroMastro<T> extends Mastro<T> with PersistroMixin<T> {
     );
   }
 
+  /// Creates a persistent list state container.
   static PersistroMastro<List<T>> list<T>(
     String key, {
     required List<T> initial,
@@ -264,6 +292,7 @@ class PersistroMastro<T> extends Mastro<T> with PersistroMixin<T> {
     );
   }
 
+  /// Creates a persistent map state container.
   static PersistroMastro<Map<String, T>> map<T>(
     String key, {
     required Map<String, T> initial,
@@ -288,7 +317,7 @@ class PersistroMastro<T> extends Mastro<T> with PersistroMixin<T> {
   }
 }
 
-// Persistent Lightro implementation
+/// Persistent version of Lightro state container.
 class PersistroLightro<T> extends Lightro<T> with PersistroMixin<T> {
   @override
   final String key;
@@ -299,6 +328,7 @@ class PersistroLightro<T> extends Lightro<T> with PersistroMixin<T> {
   @override
   final bool autoSave;
 
+  /// Creates a persistent Lightro state container.
   PersistroLightro({
     required T initial,
     required this.key,
@@ -309,7 +339,7 @@ class PersistroLightro<T> extends Lightro<T> with PersistroMixin<T> {
     initPersistence();
   }
 
-  // Factory constructors for LightroPersistro
+  /// Creates a persistent numeric state container.
   static PersistroLightro<num> number(
     String key, {
     num initial = 0.0,
@@ -324,6 +354,7 @@ class PersistroLightro<T> extends Lightro<T> with PersistroMixin<T> {
     );
   }
 
+  /// Creates a persistent string state container.
   static PersistroLightro<String> string(
     String key, {
     String initial = '',
@@ -338,6 +369,7 @@ class PersistroLightro<T> extends Lightro<T> with PersistroMixin<T> {
     );
   }
 
+  /// Creates a persistent boolean state container.
   static PersistroLightro<bool> boolean(
     String key, {
     bool initial = false,
@@ -352,6 +384,7 @@ class PersistroLightro<T> extends Lightro<T> with PersistroMixin<T> {
     );
   }
 
+  /// Creates a persistent list state container.
   static PersistroLightro<List<T>> list<T>(
     String key, {
     required List<T> initial,
@@ -369,6 +402,7 @@ class PersistroLightro<T> extends Lightro<T> with PersistroMixin<T> {
     );
   }
 
+  /// Creates a persistent map state container.
   static PersistroLightro<Map<String, T>> map<T>(
     String key, {
     required Map<String, T> initial,

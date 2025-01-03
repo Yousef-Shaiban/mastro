@@ -9,7 +9,9 @@ import 'providers.dart';
 import 'scopes.dart';
 import 'state.dart';
 
+/// Base class for managing state and events in the Mastro framework.
 abstract class MastroBox<T extends MastroEvent> {
+  /// Creates a new MastroBox instance.
   MastroBox();
 
   final _subTagTrigger = Mastro.of('');
@@ -19,8 +21,10 @@ abstract class MastroBox<T extends MastroEvent> {
   final _activeSequentialEvents = <Type>{};
   final _sequentialEventsQueue = <_QueuedEvent>[];
 
+  /// Initializes the box. Override this to set up initial state.
   void init() {}
 
+  /// Disposes of resources used by this box.
   @mustCallSuper
   void dispose() {
     _dispose();
@@ -33,13 +37,16 @@ abstract class MastroBox<T extends MastroEvent> {
     _cleanupCallbacks();
   }
 
+  /// Sets the current tag for this box.
   void tag({required String tag}) {
     _subTagTrigger.nonNotifiableSetter = tag;
     _subTagTrigger.notify();
   }
 
+  /// The current tag state of this box.
   Mastro get taggable => _subTagTrigger;
 
+  /// Triggers a callback associated with the given key.
   void trigger({required String key, Map<String, dynamic>? data}) {
     _cleanupCallbacks();
     if (_subTagCallbacks.containsKey(key)) {
@@ -47,6 +54,7 @@ abstract class MastroBox<T extends MastroEvent> {
     }
   }
 
+  /// Registers a callback function with the given key.
   void registerCallback({
     required String key,
     required void Function({Map<String, dynamic>? data}) callback,
@@ -55,6 +63,7 @@ abstract class MastroBox<T extends MastroEvent> {
     _subTagCallbacks[key] = WeakReference(callback);
   }
 
+  /// Unregisters a callback associated with the given key.
   void unregisterCallback({
     required String key,
   }) {
@@ -93,6 +102,7 @@ abstract class MastroBox<T extends MastroEvent> {
     }
   }
 
+  /// Adds an event to be processed.
   Future<void> addEvent(
     T event, {
     Callbacks? callbacks,
@@ -126,6 +136,7 @@ abstract class MastroBox<T extends MastroEvent> {
     }
   }
 
+  /// Adds an event that blocks pop navigation while processing.
   @nonVirtual
   Future<void> addEventBlockPop(
     BuildContext context,

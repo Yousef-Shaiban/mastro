@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 
 import 'mastrobox.dart';
 
+/// Provider for MastroBox instances.
 class BoxProvider<T extends MastroBox> extends Provider<T> {
+  /// Creates a provider for a MastroBox.
   BoxProvider({
     required super.create,
     super.key,
@@ -12,6 +14,7 @@ class BoxProvider<T extends MastroBox> extends Provider<T> {
     super.lazy = true,
   });
 
+  /// Retrieves the MastroBox of type T from the widget tree.
   static T of<T extends MastroBox>(
     BuildContext context, {
     bool listen = false,
@@ -34,7 +37,9 @@ class BoxProvider<T extends MastroBox> extends Provider<T> {
   }
 }
 
+/// Provider for class instances.
 class ClassProvider<T> extends Provider<T> {
+  /// Creates a provider for a class instance.
   ClassProvider({
     required super.create,
     super.key,
@@ -43,6 +48,7 @@ class ClassProvider<T> extends Provider<T> {
     super.lazy = true,
   });
 
+  /// Retrieves the instance of type T from the widget tree.
   static T of<T>(
     BuildContext context, {
     bool listen = false,
@@ -64,6 +70,7 @@ class ClassProvider<T> extends Provider<T> {
     }
   }
 
+  /// Retrieves the instance of type T from the widget tree, returns null if not found.
   static T? ofNullable<T>(
     BuildContext context, {
     bool listen = false,
@@ -76,7 +83,9 @@ class ClassProvider<T> extends Provider<T> {
   }
 }
 
+/// Provider that combines multiple MastroBox providers.
 class MultiBoxProvider extends MultiProvider {
+  /// Creates a provider that merges multiple MastroBox providers.
   MultiBoxProvider({
     super.key,
     required super.providers,

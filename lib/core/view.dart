@@ -5,31 +5,43 @@ import 'mastrobox.dart';
 import 'providers.dart';
 import 'scopes.dart';
 
+/// Base class for creating views with lifecycle management and state handling.
 abstract class MastroView<T extends MastroBox> extends StatefulWidget {
   final T? _box;
 
+  /// Creates a MastroView with an optional box instance.
   const MastroView({super.key, T? box}) : _box = box;
+
   @override
   State<MastroView> createState() => _MastroViewState<T>();
 
+  /// Builds the view's widget tree.
   Widget build(BuildContext context, T box);
 
+  /// Forces a rebuild of the view.
   void rebuild(BuildContext context) {
     context.findAncestorStateOfType<_MastroViewState<T>>()?.rebuildPage();
   }
 
+  /// Called when the view is first initialized.
   void initState(BuildContext context, T box) {}
 
+  /// Called when the app is resumed from background.
   void onResume(BuildContext context, T box) {}
 
+  /// Called when the app becomes inactive.
   void onInactive(BuildContext context, T box) {}
 
+  /// Called when the app is paused.
   void onPaused(BuildContext context, T box) {}
 
+  /// Called when the app is hidden.
   void onHide(BuildContext context, T box) {}
 
+  /// Called when the app is detached.
   void onDetached(BuildContext context, T box) {}
 
+  /// Called when the view is disposed.
   void dispose(BuildContext context, T box) {}
 }
 
@@ -121,9 +133,13 @@ class _MastroViewState<T extends MastroBox> extends State<MastroView>
 /// )
 /// ```
 class StaticWidgetProvider extends StatelessWidget {
+  /// The initial widget to be transformed.
   final Widget seed;
+
+  /// Function that transforms the seed widget into the final widget.
   final Widget Function(Widget seed) builder;
 
+  /// Creates a StaticWidgetProvider with a seed widget and builder function.
   const StaticWidgetProvider({
     super.key,
     required this.seed,

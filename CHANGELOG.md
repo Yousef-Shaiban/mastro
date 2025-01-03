@@ -25,3 +25,7 @@
 ## 0.9.6
 
 * Updated documentation.
+
+## 0.9.7
+
+* Minor fixes and improvements.

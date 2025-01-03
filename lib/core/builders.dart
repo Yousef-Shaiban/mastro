@@ -4,11 +4,18 @@ import 'package:flutter/scheduler.dart';
 import 'mastrobox.dart';
 import 'state.dart';
 
+/// A widget that rebuilds when a specific tag in a MastroBox changes.
 class TagBuilder extends StatefulWidget {
+  /// The tag to listen for changes.
   final String tag;
+
+  /// The MastroBox instance to monitor.
   final MastroBox box;
+
+  /// Builder function that creates the widget tree.
   final Widget Function(BuildContext context) builder;
 
+  /// Constructs a [TagBuilder] widget.
   const TagBuilder({
     super.key,
     required this.tag,
@@ -49,12 +56,21 @@ class _TagBuilderState extends State<TagBuilder> {
   }
 }
 
+/// A widget that rebuilds when state changes in a Basetro object.
 class MastroBuilder<T> extends StatefulWidget {
+  /// The state object to monitor for changes.
   final Basetro<T> state;
+
+  /// Builder function that creates the widget tree.
   final Widget Function(Basetro<T> state, BuildContext context) builder;
+
+  /// Optional additional state objects to monitor.
   final List<Basetro<dynamic>>? listeners;
+
+  /// Optional callback to determine if the widget should rebuild.
   final bool Function(T previous, T current)? shouldRebuild;
 
+  /// Constructs a [MastroBuilder] widget.
   const MastroBuilder({
     super.key,
     required this.state,
@@ -135,7 +151,9 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
   }
 }
 
+/// Extension methods for Basetro to simplify widget building.
 extension BasetroBuilderTools<T> on Basetro<T> {
+  /// Creates a MastroBuilder widget for this state object.
   Widget build({
     required Widget Function(
       Basetro<T> state,
