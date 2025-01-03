@@ -37,7 +37,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await MastroInit.initialize(); // Initialize Mastro
   ...
-  runApp(MastroScope(child: MaterialApp(home: YourHomeWidget())));
+  runApp(MaterialApp(home: MastroScope(child: YourHomeWidget())));
 }
 ```
 
