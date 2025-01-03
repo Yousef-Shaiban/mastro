@@ -2,6 +2,23 @@
 
 Mastro is a state management solution for Flutter that combines reactive programming with event handling and persistence. It provides a structured way to manage state, handle events, and persist data across app sessions.
 
+# Table of Contents
+- [Key Features](#key-features)
+- [Installation](#installation)
+- [1. Initialization](#1-initialization)
+- [2. State Management](#2-state-management)
+- [3. Persistent Storage](#3-persistent-storage)
+- [4. MastroBox Pattern](#4-mastrobox-pattern)
+- [5. BoxProviders](#5-boxproviders)
+- [6. Event Handling](#6-event-handling)
+- [7. Widget Building](#7-widget-building)
+- [8. MastroView Pattern](#8-mastroview-pattern)
+- [9. Scopes](#9-scopes)
+- [Project Structure](#project-structure)
+- [Examples](#examples)
+- [Contributions](#contributions)
+- [License](#license)
+
 ## Key Features
 
 - 🎯 **Simple State Management** - Lightweight and Mastro state objects
@@ -290,8 +307,21 @@ Events in Mastro provide a structured way to handle actions and state changes.
         createdAt: DateTime.now(),
       );
       box.notes.modify((notes) => notes.value.add(note));
+      
+      // Notify listeners that note was added successfully
+      callbacks.invoke('onNoteAdded', data: {'noteId': note.id});
     }
   }
+
+  // Using callbacks when adding event
+  await box.addEvent(
+    NotesEvent.add('Title', 'Content'),
+    callbacks: Callbacks({
+      'onNoteAdded': ({data}) {
+        print('Note added with ID: ${data?['noteId']}');
+      },
+    }),
+  );
   ```
 
 #### Event Modes
@@ -447,6 +477,75 @@ Mastro provides a way to manage app-wide behaviors using scopes, particularly us
 - **Global Usage**: Use `MultiBoxProvider` to define `MastroBox` instances that can be accessed from anywhere in the app. This is useful for app-wide settings or data that needs to be shared across multiple screens.
   
 - **Local Usage**: Pass a `MastroBox` instance directly to a `MastroView` for data that is only relevant to a particular screen or widget.
+
+## Project Structure
+
+Mastro follows a feature-based architecture pattern that promotes organization and separation of concerns. Here's the recommended project structure:
+
+```
+lib/
+├── core/                     # Core functionality and configurations
+├── shared/                   # Shared resources (models, utilities, etc.)
+│   └── models/
+└── features/                 # Feature modules
+    └── notes/               # Example feature
+        ├── logic/
+        │   ├── notes_box.dart
+        │   └── notes_events.dart
+        └── presentation/
+            ├── components/   # Feature-specific widgets
+            └── notes_view.dart
+```
+
+### Feature Structure Explanation
+
+Each feature follows a consistent structure:
+
+1. **Logic Layer** (`logic/`)
+   - `*_box.dart`: Contains the MastroBox implementation for the feature
+   - `*_events.dart`: Defines feature-specific events
+
+2. **Presentation Layer** (`presentation/`)
+   - `*_view.dart`: Main view implementation using MastroView
+   - `components/`: Feature-specific widgets and UI components
+
+### Example Feature Implementation
+
+```dart
+// features/notes/logic/notes_box.dart
+class NotesBox extends MastroBox<NotesEvent> {
+  final notes = PersistroMastro.list<Note>('notes', initial: []);
+}
+
+// features/notes/logic/notes_events.dart
+sealed class NotesEvent extends MastroEvent<NotesBox> {
+  const NotesEvent();
+  factory NotesEvent.add(Note note) = _AddNoteEvent;
+}
+
+// features/notes/presentation/notes_view.dart
+class NotesView extends MastroView<NotesBox> {
+  const NotesView({super.key});
+
+  @override
+  Widget build(BuildContext context, NotesBox box) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Notes')),
+      body: MastroBuilder(
+        state: box.notes,
+        builder: (notes, context) => NotesListView(notes: notes.value),
+      ),
+    );
+  }
+}
+```
+
+This structure promotes:
+- Clear separation of concerns
+- Feature isolation
+- Easy navigation and maintenance
+- Scalable architecture
+- Reusable components
 
 ## Examples
 
