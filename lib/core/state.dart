@@ -134,8 +134,6 @@ class Mastro<T> extends Basetro<T> {
   set value(T newValue) {
     if (_validator?.call(newValue) ?? true) {
       super.value = newValue;
-    } else {
-      log('Mastro<${T.runtimeType}> validator failed for value: $newValue');
     }
   }
 }

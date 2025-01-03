@@ -87,9 +87,9 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
 
   void _setupListeners() {
     if (widget.listeners == null) {
-      widget.mastro.addListener(_updateState);
+      widget.state.addListener(_updateState);
     } else {
-      widget.mastro.addListener(_updateState);
+      widget.state.addListener(_updateState);
       for (final element in widget.listeners!) {
         element.addListener(_updateState);
       }
@@ -98,9 +98,9 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
 
   void _cleanupListeners() {
     if (widget.listeners == null) {
-      widget.mastro.removeListener(_updateState);
+      widget.state.removeListener(_updateState);
     } else {
-      widget.mastro.removeListener(_updateState);
+      widget.state.removeListener(_updateState);
       for (final element in widget.listeners!) {
         element.removeListener(_updateState);
       }
@@ -116,7 +116,7 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
   @override
   void didUpdateWidget(MastroBuilder<T> oldWidget) {
     if (oldWidget.listeners != widget.listeners ||
-        oldWidget.mastro != widget.mastro) {
+        oldWidget.state != widget.state) {
       _cleanupListeners();
       _setupListeners();
     }

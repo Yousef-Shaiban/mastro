@@ -13,3 +13,7 @@
 ## 0.9.3
 
 * Minor fixes.
+
+## 0.9.4
+
+* Minor fixes.
