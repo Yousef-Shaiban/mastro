@@ -40,26 +40,26 @@ abstract class MastroBox<T extends MastroEvent> {
 
   Mastro get taggable => _subTagTrigger;
 
-  void trigger({required String id, Map<String, dynamic>? data}) {
+  void trigger({required String key, Map<String, dynamic>? data}) {
     _cleanupCallbacks();
-    if (_subTagCallbacks.containsKey(id)) {
-      _subTagCallbacks[id]?.target?.call(data: data);
+    if (_subTagCallbacks.containsKey(key)) {
+      _subTagCallbacks[key]?.target?.call(data: data);
     }
   }
 
   void registerCallback({
-    required String id,
+    required String key,
     required void Function({Map<String, dynamic>? data}) callback,
   }) {
     _cleanupCallbacks();
-    _subTagCallbacks[id] = WeakReference(callback);
+    _subTagCallbacks[key] = WeakReference(callback);
   }
 
   void unregisterCallback({
-    required String id,
+    required String key,
   }) {
     _cleanupCallbacks();
-    _subTagCallbacks.remove(id);
+    _subTagCallbacks.remove(key);
   }
 
   Future<void> _awaitLoading(

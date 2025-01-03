@@ -6,9 +6,9 @@ import 'providers.dart';
 import 'scopes.dart';
 
 abstract class MastroView<T extends MastroBox> extends StatefulWidget {
-  final T? _mastrobox;
+  final T? _box;
 
-  const MastroView({super.key, T? box}) : _mastrobox = box;
+  const MastroView({super.key, T? box}) : _box = box;
   @override
   State<MastroView> createState() => _MastroViewState<T>();
 
@@ -35,26 +35,26 @@ abstract class MastroView<T extends MastroBox> extends StatefulWidget {
 
 class _MastroViewState<T extends MastroBox> extends State<MastroView>
     with WidgetsBindingObserver {
-  late final T mastrobox;
+  late final T box;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     switch (state) {
       case AppLifecycleState.resumed:
-        widget.onResume(context, mastrobox);
+        widget.onResume(context, box);
         break;
       case AppLifecycleState.inactive:
-        widget.onInactive(context, mastrobox);
+        widget.onInactive(context, box);
         break;
       case AppLifecycleState.paused:
-        widget.onPaused(context, mastrobox);
+        widget.onPaused(context, box);
         break;
       case AppLifecycleState.detached:
-        widget.onDetached(context, mastrobox);
+        widget.onDetached(context, box);
         break;
       case AppLifecycleState.hidden:
-        widget.onHide(context, mastrobox);
+        widget.onHide(context, box);
         break;
     }
   }
@@ -65,13 +65,13 @@ class _MastroViewState<T extends MastroBox> extends State<MastroView>
 
   @override
   void initState() {
-    if (widget._mastrobox != null) {
-      mastrobox = widget._mastrobox! as T;
+    if (widget._box != null) {
+      box = widget._box! as T;
     } else {
-      mastrobox = BoxProvider.of<T>(context);
+      box = BoxProvider.of<T>(context);
     }
-    mastrobox.init();
-    widget.initState(context, mastrobox);
+    box.init();
+    widget.initState(context, box);
     super.initState();
     WidgetsBinding.instance.addObserver(this);
   }
@@ -79,7 +79,7 @@ class _MastroViewState<T extends MastroBox> extends State<MastroView>
   @override
   Widget build(BuildContext context) {
     return StaticWidgetProvider(
-      seed: widget.build(context, mastrobox),
+      seed: widget.build(context, box),
       builder: (seed) {
         final popScope = ClassProvider.ofNullable<OnPopScope>(context);
         return popScope != null
@@ -102,8 +102,8 @@ class _MastroViewState<T extends MastroBox> extends State<MastroView>
 
   @override
   void dispose() {
-    widget.dispose(context, mastrobox);
-    mastrobox.dispose();
+    widget.dispose(context, box);
+    box.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

@@ -36,7 +36,7 @@ abstract class Basetro<T> with ChangeNotifier {
 
   T get value => _data.value;
 
-  void modify(void Function(Mutable<T> mastro) modify) {
+  void modify(void Function(Mutable<T> state) modify) {
     modify(_data);
     notify();
   }

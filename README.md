@@ -131,7 +131,7 @@ Mastro offers two primary ways to manage state: `Lightro` and `Mastro`. Both can
 |--------------------------|----------|--------|
 | Modify method            | ✅       | ✅      |
 | Dependencies             | ❌       | ✅      |
-| Computed values          | ❌       | ✅      |
+| Computed states          | ❌       | ✅      |
 | Validation               | ❌       | ✅      |
 | Observers                | ❌       | ✅      |
 
@@ -335,6 +335,7 @@ Mastro provides builder widgets to create reactive UIs.
   ```dart
   TagBuilder(
     tag: 'important',
+    box: box,
     builder: (context) => Text('This is an important update!'),
   );
 
@@ -350,6 +351,8 @@ MastroView provides a structured way to create screens with lifecycle management
 - **Usage**: Extend `MastroView` to create a screen with lifecycle hooks.
 
 #### Using Local Box
+
+Create or pass a `MastroBox` instance directly to a `MastroView` super constructor.
 
 - **Example**:
   ```dart
@@ -376,6 +379,8 @@ MastroView provides a structured way to create screens with lifecycle management
   ```
 
 #### Using BoxProvider
+
+Use `MultiBoxProvider` or `BoxProvider` to define `MastroBox` instances in the widget tree prior to the creation of the MastroView.
 
 - **Example**:
   ```dart

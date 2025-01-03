@@ -17,3 +17,7 @@
 ## 0.9.4
 
 * Minor fixes.
+
+## 0.9.5
+
+* Minor fixes.
