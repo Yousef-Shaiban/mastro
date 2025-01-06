@@ -22,6 +22,7 @@ abstract class MastroBox<T extends MastroEvent> {
   final _sequentialEventsQueue = <_QueuedEvent>[];
 
   /// Initializes the box. Override this to set up initial state.
+  @mustCallSuper
   void init() {}
 
   /// Disposes of resources used by this box.
@@ -37,7 +38,7 @@ abstract class MastroBox<T extends MastroEvent> {
     _cleanupCallbacks();
   }
 
-  /// Sets the current tag for this box.
+  /// notifies TagBuilder using specific tag
   void tag({required String tag}) {
     _subTagTrigger.nonNotifiableSetter = tag;
     _subTagTrigger.notify();
@@ -103,7 +104,10 @@ abstract class MastroBox<T extends MastroEvent> {
   }
 
   /// Adds an event to be processed.
-  Future<void> addEvent(
+  ///
+  /// [event] is the event to be processed.
+  /// [callbacks] is a map of callbacks to be triggered after the event is processed.
+  Future<void> execute(
     T event, {
     Callbacks? callbacks,
   }) async {
@@ -137,8 +141,12 @@ abstract class MastroBox<T extends MastroEvent> {
   }
 
   /// Adds an event that blocks pop navigation while processing.
+  ///
+  /// [context] is the context of the widget that is calling the event.
+  /// [event] is the event to be processed.
+  /// [callbacks] is a map of callbacks to be triggered after the event is processed.
   @nonVirtual
-  Future<void> addEventBlockPop(
+  Future<void> executeBlockPop(
     BuildContext context,
     T event, {
     Callbacks? callbacks,

@@ -5,7 +5,7 @@ import 'state.dart';
 
 /// A widget that can be triggered to rebuild.
 class MastroTriggerable {
-  final _state = false.mastro;
+  final _state = false.lightro;
 
   /// Triggers a rebuild of the widget.
   void trigger() => _state.toggle();

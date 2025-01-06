@@ -41,7 +41,7 @@ class NotesView extends MastroView<NotesBox> {
                 final note = box.sortedNotes[index];
                 return Dismissible(
                   key: Key(note.id),
-                  onDismissed: (_) => box.addEvent(NotesEvent.delete(note.id)),
+                  onDismissed: (_) => box.execute(NotesEvent.delete(note.id)),
                   child: ListTile(
                     title: Text(note.title),
                     subtitle: Text(
@@ -55,7 +55,7 @@ class NotesView extends MastroView<NotesBox> {
                             ? Icons.push_pin
                             : Icons.push_pin_outlined,
                       ),
-                      onPressed: () => box.addEvent(NotesEvent.toggle(note.id)),
+                      onPressed: () => box.execute(NotesEvent.toggle(note.id)),
                     ),
                     trailing: Text(
                       '${note.createdAt.day}/${note.createdAt.month}',
@@ -106,7 +106,7 @@ class NotesView extends MastroView<NotesBox> {
           TextButton(
             onPressed: () {
               if (titleController.text.isNotEmpty) {
-                box.addEvent(NotesEvent.add(
+                box.execute(NotesEvent.add(
                     titleController.text, contentController.text));
                 Navigator.pop(context);
               }

@@ -9,7 +9,7 @@ class OnPopScope {
   final Function(BuildContext context) onPopWaitMessage;
 
   /// Current loading state.
-  final isLoading = false.mastro;
+  final isLoading = false.lightro;
 
   /// Creates an OnPopScope instance.
   OnPopScope({required this.onPopWaitMessage});

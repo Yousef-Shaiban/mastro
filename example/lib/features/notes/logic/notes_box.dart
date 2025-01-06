@@ -22,6 +22,7 @@ class NotesBox extends MastroBox<MastroEvent> {
 
     // Add observers for debugging and analytics
     notes.debugLog();
+    super.init();
   }
 
   // Get sorted notes
