@@ -1,6 +1,6 @@
 name: mastro
-description: Transform Flutter state management into an art form with Mastro the elegant conductor of your app's data symphony
-version: 0.9.7
+description: A highly customizable Flutter widget that provides beautiful press animations and effects for any child widget. Perfect for creating interactive UI elements with minimal effort.
+version: 1.0.0
 homepage: https://github.com/Yousef-Shaiban/mastro
 
 environment:
