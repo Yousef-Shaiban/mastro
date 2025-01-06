@@ -300,12 +300,12 @@ MastroBox is the core container for your application's and view's state and logi
   box.trigger(key: 'doSomething', data: {'id': 1});
 ```
 
-- **execute**: adds an event to the box.
+- **execute**: executes an event.
 ```dart
   box.execute(NotesEvent.add('New Note', 'This is a new note'));
 ```
 
-- **executeBlockPop**: adds an event to the box and blocks the pop of the view until the event is finished.
+- **executeBlockPop**: executes an event and blocks the pop of the view until the event is finished.
 ```dart
   box.executeBlockPop(context, NotesEvent.add('New Note', 'This is a new note'));
 ```
@@ -382,13 +382,13 @@ Events in Mastro provide a structured way to handle actions and state changes.
   }
   ```
 
-- **Adding Event without callbacks**:
+- **Executing Event Without Callbacks**:
 ```dart
   await box.execute(
     NotesEvent.delete(13),
   );
 ```
-- **Adding Event with callbacks**:
+- **Executing Event With Callbacks**:
 ```dart
   await box.execute(
     NotesEvent.add('Title', 'Content'),
@@ -552,7 +552,7 @@ Mastro provides a way to manage app-wide behaviors using scopes, particularly us
 #### OnPopScope
 
 - **Purpose**: Manage user interactions during blocking events within `MastroScope`.
-- **Usage**: Use `OnPopScope` to define behavior when an event blocks user interactions.
+- **Usage**: Use `OnPopScope` to define behavior when an event blocks user from popping the view.
 - **Example**:
   ```dart
   MaterialApp(
@@ -572,7 +572,7 @@ Mastro provides a way to manage app-wide behaviors using scopes, particularly us
 #### executeBlockPop
 
 - **Purpose**: Execute events that block user interactions until completion.
-- **Usage**: Use `executeBlockPop` to run events that should prevent user actions until they finish.
+- **Usage**: Use `executeBlockPop` to run events that should prevent user from popping the view until the event is finished.
 - **Example**:
   ```dart
   await box.executeBlockPop(
