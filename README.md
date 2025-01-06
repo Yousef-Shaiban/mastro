@@ -1,4 +1,4 @@
-# <img src="https://i.imgur.com/zJm0FJT.png" > 
+<img src="https://i.imgur.com/zJm0FJT.png" > 
 
 A robust state management solution for Flutter that seamlessly integrates reactive programming with event handling and persistence capabilities.
 
@@ -256,6 +256,7 @@ MastroBox is the core container for your application's and view's state and logi
     @override
     void init() {
       notes.debugLog();
+      super.init();
     }
   }
   ```
@@ -266,6 +267,7 @@ MastroBox is the core container for your application's and view's state and logi
 ```dart
   @override
   void init() {
+    //...
     super.init();
   }
 ```
@@ -274,13 +276,14 @@ MastroBox is the core container for your application's and view's state and logi
 ```dart
   @override
   void dispose() {
+    //...
     super.dispose();
   }
 ```
 
 - **tag**: notifies TagBuilder using specific tag
 ```dart
-  box.tag(tag: 'important');
+  box.tag(tag: 'tag');
 ```
 
 - **registerCallback**: registers a callback function with the given key.
@@ -365,7 +368,7 @@ Events in Mastro provide a structured way to handle actions and state changes.
     Future<void> implement(NotesBox box, Callbacks callbacks) async {
       //do your logic here
       
-      // Notify listeners that note was added successfully
+      // Triggers a callback
       callbacks.invoke('onNoteAdded', data: {'noteId': note.id});
     }
   }
@@ -453,7 +456,7 @@ Mastro provides builder widgets to create reactive UIs.
     builder: (context) => Text('The new number is ${Random().nextInt(100)}'),
   );
 
-  // Trigger a rebuild for the 'important' tag
+  // Trigger a rebuild action
   box.tag('new_number');
   ```
 
