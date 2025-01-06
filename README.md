@@ -2,21 +2,6 @@
 
 A robust state management solution for Flutter that seamlessly integrates reactive programming with event handling and persistence capabilities.
 
-## Key Features
-
-- 🎯 **Streamlined State Management** - Efficient and intuitive state objects
-- 🔄 **Reactive Architecture** - Optimized widget rebuilding with fine-grained control
-- 💾 **Persistent Storage** - Built-in data persistence with SharedPreferences integration
-- 📦 **MastroBox Pattern** - Structured business logic and state management
-- 🎭 **Event System** - Comprehensive event processing with multiple execution modes
-- 🔍 **Development Tools** - Integrated debugging and logging capabilities
-- 🏗️ **Widget Framework** - Flexible and performant reactive UI components
-- 🔒 **Validation System** - Robust state validation mechanisms
-- 🔄 **Computed Properties** - Automatic derivation and updates of dependent values
-- 🎯 **Event Processing Modes** - Configurable event execution (Parallel, Sequential, Solo)
-- 🔌 **Lifecycle Management** - Comprehensive lifecycle hooks and state management
-- 🎨 **UI Architecture** - Structured patterns for view and widget organization
-
 # Table of Contents
 - [1. Key Features](#1-key-features)
 - [2. Installation](#2-installation)
@@ -37,18 +22,18 @@ A robust state management solution for Flutter that seamlessly integrates reacti
 
 ## 1. Key Features
 
-- 🎯 **Simple State Management** - Lightweight and Mastro state objects
-- 🔄 **Reactive Updates** - Efficient widget rebuilding
-- 💾 **Persistent Storage** - Built-in persistence capabilities
-- 📦 **MastroBox Pattern** - Organized business logic and state
-- 🎭 **Event Handling** - Structured event processing
-- 🔍 **Debug Tools** - Built-in debugging capabilities
-- 🏗️ **Builder Widgets** - Flexible widget building
-- 🔒 **State Validation** - Input validation support
-- 🔄 **Computed States** - Derived values with automatic updates
-- 🎯 **Event Modes** - Parallel, Sequential, and Solo event processing
-- 🔌 **Lifecycle Management** - Built-in lifecycle hooks
-- 🎨 **UI Patterns** - Structured view and widget patterns
+- 🎯 **Streamlined State Management** - Efficient and intuitive state objects
+- 🔄 **Reactive Architecture** - Optimized widget rebuilding with fine-grained control
+- 💾 **Persistent Storage** - Built-in data persistence with SharedPreferences integration
+- 📦 **MastroBox Pattern** - Structured business logic and state management
+- 🎭 **Event System** - Comprehensive event processing with multiple execution modes
+- 🔍 **Development Tools** - Integrated debugging and logging capabilities
+- 🏗️ **Widget Framework** - Flexible and performant reactive UI components
+- 🔒 **Validation System** - Robust state validation mechanisms
+- 🔄 **Computed Properties** - Automatic derivation and updates of dependent values
+- 🎯 **Event Processing Modes** - Configurable event execution (Parallel, Sequential, Solo)
+- 🔌 **Lifecycle Management** - Comprehensive lifecycle hooks and state management
+- 🎨 **UI Architecture** - Structured patterns for view and widget organization
 
 ## 2. Installation
 
