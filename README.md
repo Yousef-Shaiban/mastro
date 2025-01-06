@@ -1,41 +1,21 @@
-<div align="center">
+# <img src="https://i.imgur.com/zJm0FJT.png" > 
 
-# <img src="https://raw.githubusercontent.com/yourusername/mastro/main/assets/logo.gif" width="40"> Mastro
-
-<div style="font-family: 'Montserrat', sans-serif;">
-  
 A robust state management solution for Flutter that seamlessly integrates reactive programming with event handling and persistence capabilities.
 
-[![Pub Version](https://img.shields.io/pub/v/mastro?color=blue&style=for-the-badge)](https://pub.dev/packages/mastro)
-[![License](https://img.shields.io/github/license/yourusername/mastro?style=for-the-badge)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/yourusername/mastro?style=for-the-badge)](https://github.com/yourusername/mastro/stargazers)
+## Key Features
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/mastro/main/assets/demo.gif" alt="Mastro Demo" width="600">
-</p>
-
-</div>
-
-## ✨ Key Features
-
-<div style="font-family: 'Roboto', sans-serif;">
-
-| Feature | Description |
-|---------|-------------|
-| 🎯 **Streamlined State Management** | Efficient and intuitive state objects |
-| 🔄 **Reactive Architecture** | Optimized widget rebuilding with fine-grained control |
-| 💾 **Persistent Storage** | Built-in data persistence with SharedPreferences integration |
-| 📦 **MastroBox Pattern** | Structured business logic and state management |
-| 🎭 **Event System** | Comprehensive event processing with multiple execution modes |
-| 🔍 **Development Tools** | Integrated debugging and logging capabilities |
-| 🏗️ **Widget Framework** | Flexible and performant reactive UI components |
-| 🔒 **Validation System** | Robust state validation mechanisms |
-| 🔄 **Computed Properties** | Automatic derivation and updates of dependent values |
-| 🎯 **Event Processing Modes** | Configurable event execution (Parallel, Sequential, Solo) |
-| 🔌 **Lifecycle Management** | Comprehensive lifecycle hooks and state management |
-| 🎨 **UI Architecture** | Structured patterns for view and widget organization |
-
-</div>
+- 🎯 **Streamlined State Management** - Efficient and intuitive state objects
+- 🔄 **Reactive Architecture** - Optimized widget rebuilding with fine-grained control
+- 💾 **Persistent Storage** - Built-in data persistence with SharedPreferences integration
+- 📦 **MastroBox Pattern** - Structured business logic and state management
+- 🎭 **Event System** - Comprehensive event processing with multiple execution modes
+- 🔍 **Development Tools** - Integrated debugging and logging capabilities
+- 🏗️ **Widget Framework** - Flexible and performant reactive UI components
+- 🔒 **Validation System** - Robust state validation mechanisms
+- 🔄 **Computed Properties** - Automatic derivation and updates of dependent values
+- 🎯 **Event Processing Modes** - Configurable event execution (Parallel, Sequential, Solo)
+- 🔌 **Lifecycle Management** - Comprehensive lifecycle hooks and state management
+- 🎨 **UI Architecture** - Structured patterns for view and widget organization
 
 # Table of Contents
 - [1. Key Features](#1-key-features)
