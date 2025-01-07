@@ -343,6 +343,11 @@ MastroBox is the core container for your application's and view's state and logi
     child: MyApp(),
   );
   ```
+#### Accessing A Box Using BoxProvider
+- **Example**:
+  ```dart
+  final box = BoxProvider.of<T>(context); // Replace T with your box type
+  ```
 
 ## 8. Event Handling
 
