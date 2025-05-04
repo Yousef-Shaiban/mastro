@@ -1,3 +1,12 @@
+## 1.0.2
+
+* Minor fixes and improvements.
+
+## 1.0.1
+
+* Minor fixes and improvements.
+* Updated documentation.
+
 ## 1.0.0+3
 
 * Updated documentation.

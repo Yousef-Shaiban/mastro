@@ -3,18 +3,28 @@ import 'package:provider/provider.dart';
 
 import 'mastrobox.dart';
 
-/// Provider for MastroBox instances.
+/// A provider for [MastroBox] instances in the widget tree.
+///
+/// Extends [Provider] to manage and provide access to a [MastroBox] instance.
+///
+/// Type parameter [T] represents the specific [MastroBox] subclass being provided.
 class BoxProvider<T extends MastroBox> extends Provider<T> {
-  /// Creates a provider for a MastroBox.
+  /// Creates a provider for a [MastroBox].
+  ///
+  /// [create] is a function that constructs the [MastroBox] instance. [key], [child],
+  /// [builder], and [lazy] are inherited from [Provider] for widget configuration.
   BoxProvider({
     required super.create,
     super.key,
     super.child,
     super.builder,
     super.lazy = true,
-  });
+  }) : super(dispose: (context, value) => value.dispose());
 
-  /// Retrieves the MastroBox of type T from the widget tree.
+  /// Retrieves the [MastroBox] of type [T] from the widget tree.
+  ///
+  /// [context] is the build context to search from. [listen] determines if the widget
+  /// rebuilds on changes (defaults to false). Throws a [FlutterError] if no provider is found.
   static T of<T extends MastroBox>(
     BuildContext context, {
     bool listen = false,
@@ -37,9 +47,16 @@ class BoxProvider<T extends MastroBox> extends Provider<T> {
   }
 }
 
-/// Provider for class instances.
+/// A provider for arbitrary class instances in the widget tree.
+///
+/// Extends [Provider] to manage and provide access to any class instance.
+///
+/// Type parameter [T] represents the type of the instance being provided.
 class ClassProvider<T> extends Provider<T> {
   /// Creates a provider for a class instance.
+  ///
+  /// [create] is a function that constructs the instance. [key], [child], [builder],
+  /// and [lazy] are inherited from [Provider] for widget configuration.
   ClassProvider({
     required super.create,
     super.key,
@@ -48,7 +65,10 @@ class ClassProvider<T> extends Provider<T> {
     super.lazy = true,
   });
 
-  /// Retrieves the instance of type T from the widget tree.
+  /// Retrieves the instance of type [T] from the widget tree.
+  ///
+  /// [context] is the build context to search from. [listen] determines if the widget
+  /// rebuilds on changes (defaults to false). Throws a [FlutterError] if no provider is found.
   static T of<T>(
     BuildContext context, {
     bool listen = false,
@@ -70,7 +90,10 @@ class ClassProvider<T> extends Provider<T> {
     }
   }
 
-  /// Retrieves the instance of type T from the widget tree, returns null if not found.
+  /// Retrieves the instance of type [T] from the widget tree, or null if not found.
+  ///
+  /// [context] is the build context to search from. [listen] determines if the widget
+  /// rebuilds on changes (defaults to false). Returns null instead of throwing if no provider is found.
   static T? ofNullable<T>(
     BuildContext context, {
     bool listen = false,
@@ -83,9 +106,14 @@ class ClassProvider<T> extends Provider<T> {
   }
 }
 
-/// Provider that combines multiple MastroBox providers.
+/// A provider that combines multiple [MastroBox] providers into a single widget.
+///
+/// Extends [MultiProvider] to allow nesting multiple [BoxProvider] instances.
 class MultiBoxProvider extends MultiProvider {
-  /// Creates a provider that merges multiple MastroBox providers.
+  /// Creates a provider that merges multiple [MastroBox] providers.
+  ///
+  /// [providers] is a list of providers to combine. [child] is the widget tree to provide to.
+  /// [key] is optional for widget identity.
   MultiBoxProvider({
     super.key,
     required super.providers,

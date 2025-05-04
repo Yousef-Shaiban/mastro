@@ -3,27 +3,40 @@ import 'package:flutter/material.dart';
 import 'providers.dart';
 import 'state.dart';
 
-/// Manages pop navigation behavior and loading state.
+/// Manages pop navigation behavior and loading state within the Mastro framework.
+///
+/// Used with [MastroScope] to handle navigation blocking and loading indicators.
 class OnPopScope {
-  /// Callback to show a message when pop is waiting.
+  /// Callback to show a message when pop navigation is waiting due to loading.
+  ///
+  /// [context] is the current build context, used to display the message.
   final Function(BuildContext context) onPopWaitMessage;
 
-  /// Current loading state.
+  /// The current loading state.
+  ///
+  /// A [Lightro<bool>] instance that tracks whether an operation is in progress.
   final isLoading = false.lightro;
 
-  /// Creates an OnPopScope instance.
+  /// Creates an [OnPopScope] instance.
+  ///
+  /// [onPopWaitMessage] defines the behavior when pop is blocked due to loading.
   OnPopScope({required this.onPopWaitMessage});
 }
 
-/// Widget that provides scope for Mastro functionality.
+/// A widget that provides scope for Mastro framework functionality.
+///
+/// Wraps the widget tree with optional [OnPopScope] support for managing navigation and loading.
 class MastroScope extends StatelessWidget {
-  /// Optional pop scope handler.
+  /// Optional handler for pop navigation and loading state.
   final OnPopScope? onPopScope;
 
-  /// Child widget.
+  /// The child widget to scope.
   final Widget child;
 
-  /// Creates a MastroScope widget.
+  /// Creates a [MastroScope] widget.
+  ///
+  /// [onPopScope] provides navigation control if present. [child] is the widget tree to wrap.
+  /// [key] is optional for widget identity.
   const MastroScope({super.key, this.onPopScope, required this.child});
 
   @override
