@@ -26,8 +26,7 @@ class NotesView extends MastroView<NotesBox> {
               MastroBuilder(
                 state: box.sortByPinned,
                 builder: (sort, context) => IconButton(
-                  icon: Icon(
-                      sort.value ? Icons.push_pin : Icons.push_pin_outlined),
+                  icon: Icon(sort.value ? Icons.push_pin : Icons.push_pin_outlined),
                   onPressed: () => sort.toggle(),
                 ),
               ),
@@ -51,9 +50,7 @@ class NotesView extends MastroView<NotesBox> {
                     ),
                     leading: IconButton(
                       icon: Icon(
-                        note.isPinned
-                            ? Icons.push_pin
-                            : Icons.push_pin_outlined,
+                        note.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
                       ),
                       onPressed: () => box.execute(NotesEvent.toggle(note.id)),
                     ),
@@ -106,8 +103,7 @@ class NotesView extends MastroView<NotesBox> {
           TextButton(
             onPressed: () {
               if (titleController.text.isNotEmpty) {
-                box.execute(NotesEvent.add(
-                    titleController.text, contentController.text));
+                box.execute(NotesEvent.add(titleController.text, contentController.text));
                 Navigator.pop(context);
               }
             },

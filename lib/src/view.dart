@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'box.dart';
 import 'builders.dart';
-import 'mastrobox.dart';
 import 'providers.dart';
 import 'scopes.dart';
 
@@ -12,13 +12,13 @@ import 'scopes.dart';
 /// Type parameter [T] represents the [MastroBox] subclass managing this view’s state.
 abstract class MastroView<T extends MastroBox> extends StatefulWidget {
   /// Optional [MastroBox] instance provided directly to the view.
-  final T? _box;
+  final T? Function()? _box;
 
   /// Creates a [MastroView] with an optional box instance.
   ///
   /// [box] is an optional [MastroBox] instance; if null, it’s retrieved via [BoxProvider].
   /// [key] is optional for widget identity.
-  const MastroView({super.key, T? box}) : _box = box;
+  const MastroView({super.key, T? Function()? box}) : _box = box;
 
   @override
   State<MastroView> createState() => _MastroViewState<T>();
@@ -106,13 +106,14 @@ class _MastroViewState<T extends MastroBox> extends State<MastroView> with Widge
 
   @override
   void initState() {
-    if (widget._box != null) {
-      box = widget._box! as T;
+    final box = widget._box?.call();
+    if (box != null) {
+      this.box = box as T;
     } else {
-      box = BoxProvider.of<T>(context);
+      this.box = BoxProvider.of<T>(context);
     }
-    box.init();
-    widget.initState(context, box);
+    this.box.onViewAttached(widget);
+    widget.initState(context, this.box);
     super.initState();
     WidgetsBinding.instance.addObserver(this);
   }
@@ -120,8 +121,8 @@ class _MastroViewState<T extends MastroBox> extends State<MastroView> with Widge
   @override
   Widget build(BuildContext context) {
     return StaticWidgetProvider(
-      seed: widget.build(context, box),
-      builder: (seed) {
+      child: widget.build(context, box),
+      builder: (child) {
         final popScope = ClassProvider.ofNullable<OnPopScope>(context);
         return popScope != null
             ? MastroBuilder(
@@ -133,10 +134,10 @@ class _MastroViewState<T extends MastroBox> extends State<MastroView> with Widge
                       popScope.onPopWaitMessage(context);
                     }
                   },
-                  child: seed,
+                  child: child,
                 ),
               )
-            : seed;
+            : child;
       },
     );
   }
@@ -144,7 +145,7 @@ class _MastroViewState<T extends MastroBox> extends State<MastroView> with Widge
   @override
   void dispose() {
     widget.dispose(context, box);
-    box.dispose();
+    box.onViewDetached(widget);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -163,21 +164,21 @@ class _MastroViewState<T extends MastroBox> extends State<MastroView> with Widge
 /// ```
 class StaticWidgetProvider extends StatelessWidget {
   /// The initial widget to be transformed.
-  final Widget seed;
+  final Widget child;
 
-  /// Function that transforms the [seed] widget into the final widget.
-  final Widget Function(Widget seed) builder;
+  /// Function that transforms the [child] widget into the final widget.
+  final Widget Function(Widget child) builder;
 
   /// Creates a [StaticWidgetProvider] with a seed widget and builder function.
   ///
-  /// [seed] is the base widget. [builder] defines how to transform it. [key] is optional
+  /// [child] is the base widget. [builder] defines how to transform it. [key] is optional
   /// for widget identity.
   const StaticWidgetProvider({
     super.key,
-    required this.seed,
+    required this.child,
     required this.builder,
   });
 
   @override
-  Widget build(BuildContext context) => builder(seed);
+  Widget build(BuildContext context) => builder(child);
 }

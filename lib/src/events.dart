@@ -1,3 +1,5 @@
+import 'internal/extra.dart';
+
 /// Defines how events should be executed in relation to each other within the Mastro framework.
 ///
 /// This enum specifies the execution mode for [MastroEvent] instances.
@@ -46,23 +48,50 @@ abstract class MastroEvent<T> {
 /// Manages callback functions that can be invoked by [MastroEvent] instances.
 ///
 /// This class stores and triggers named callbacks, allowing events to communicate results
-/// or trigger additional actions.
 class Callbacks {
   /// Internal storage for callback functions.
-  final Map<String, void Function({Map<String, dynamic>? data})> _callbacks;
-
-  /// Creates a new callbacks manager.
   ///
-  /// [callbacks] is an optional map of named callback functions. If null, an empty map is used.
-  Callbacks({
-    Map<String, void Function({Map<String, dynamic>? data})>? callbacks,
-  }) : _callbacks = callbacks ?? {};
+  /// This map stores callbacks identified by their unique string names.
+  /// It can be null if the `Callbacks._()` private constructor is used
+  /// without providing an initial map.
+  final Map<String, void Function(Map<String, dynamic>? data)>? _callbacks;
+
+  /// Private constructor for internal use by factories.
+  ///
+  /// It initializes the internal [_callbacks] map with an optional provided map.
+  /// If [callbacks] is null, the [_callbacks] field will be null.
+  Callbacks._({
+    Map<String, void Function(Map<String, dynamic>? data)>? callbacks,
+  }) : _callbacks = callbacks;
+
+  /// Factory constructor to create a [Callbacks] instance, potentially starting a chain.
+  ///
+  /// it returns a [Callbacks] instance initialized with a single callback
+  /// associated with the given [name] and [callback]. This can be used as the
+  /// starting point for method chaining.
+  factory Callbacks.on(String name, void Function(Map<String, dynamic>? data) callback) {
+    if (name == defaultCallbacksName) {
+      return Callbacks._();
+    }
+    return Callbacks._(callbacks: {name: callback});
+  }
+
+  /// Registers a callback function with the given [name].
+  ///
+  /// [name] is the unique identifier for the callback. [callback] is the function to register,
+  /// which may receive optional [data] when triggered.
+  /// Returns the [Callbacks] instance to allow for method chaining.
+  Callbacks on(String name, void Function(Map<String, dynamic>? data) callback) {
+    _callbacks?[name] = callback;
+    return this;
+  }
 
   /// Invokes a named callback with optional data.
   ///
   /// [name] is the identifier of the callback to trigger. [data] is an optional map of
-  /// parameters to pass to the callback. Does nothing if the callback is not registered.
+  /// parameters to pass to the callback. Does nothing if the callback is not registered
+  /// or if the internal [_callbacks] map is null.
   void invoke(String name, {Map<String, dynamic>? data}) {
-    _callbacks[name]?.call(data: data);
+    _callbacks?[name]?.call(data);
   }
 }

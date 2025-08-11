@@ -1,27 +1,46 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:mastro/src/internal/extra.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'init.dart';
-import 'state.dart';
+import 'core.dart';
 
 /// Provides persistent storage functionality using [SharedPreferences].
 ///
 /// This class offers static methods to store and retrieve values persistently, requiring
-/// [MastroInit.initialize] to be called first.
+/// [Persistro.initialize] to be called first.
 class Persistro {
+  static bool _initialized = false;
+
+  /// Provides persistent storage functionality after initialization.
+  static late final SharedPreferences store;
+
+  /// Initializes the Persistro framework.
+  ///
+  /// Sets up [store] with an instance of [SharedPreferences]. Does nothing if already
+  /// initialized. Returns a [Future] that completes when initialization is done.
+  static Future<void> initialize() async {
+    if (_initialized) return;
+
+    store = await SharedPreferences.getInstance();
+
+    _initialized = true;
+  }
+
+  /// Returns `true` if [initialize] has been called successfully, `false` otherwise.
+  static bool get isInitialized => _initialized;
+
   /// Private constructor to prevent instantiation.
   const Persistro._();
 
   /// Internal access to [SharedPreferences] instance.
   static SharedPreferences get _sharedPreferences {
-    if (!MastroInit.isInitialized) {
-      // Enhancement: Throw a custom exception for clearer error handling
-      throw StateError('MastroInit must be initialized before using Persistro. '
-          'Call await MastroInit.initialize() in main().');
+    if (!isInitialized) {
+      throw StateError('Persistro must be initialized before using it. '
+          'Call await Persistro.initialize() in main().');
     }
-    return MastroInit.persistro;
+    return store;
   }
 
   /// Stores a string value persistently.
@@ -100,7 +119,7 @@ class Persistro {
 /// This mixin extends [Basetro] with methods to save and restore state using [SharedPreferences].
 ///
 /// Type parameter [T] represents the type of the value being managed.
-mixin PersistroMixin<T> on Basetro<T> {
+mixin _PersistroMixin<T> on Basetro<T> {
   /// The unique key for storing this state in persistent storage.
   String get key;
 
@@ -120,26 +139,26 @@ mixin PersistroMixin<T> on Basetro<T> {
   String? _lastSavedValue;
 
   /// Internal access to [SharedPreferences] instance.
-  SharedPreferences get _sharedPreferences => MastroInit.persistro;
+  SharedPreferences get _sharedPreferences => Persistro.store;
 
   /// Initializes the persistence system for this state.
   ///
   /// Sets up auto-save listeners if [autoSave] is true and restores any previously saved value.
-  /// Throws a [StateError] if [MastroInit] is not initialized.
+  /// Throws a [StateError] if [Persistro] is not initialized.
   void initPersistence() {
-    if (!MastroInit.isInitialized) {
+    if (!isInitialized) {
       try {
         throw StateError('''
 ╔════════════════════════════════════════════════════════════════════════════╗
 ║                              PERSISTRO ERROR                               ║
 ╠════════════════════════════════════════════════════════════════════════════╣
-║ Cannot create Persistent state before Mastro initialization!               ║
+║ Cannot create Persistent state before Persistro initialization!            ║
 ║                                                                            ║
-║ Please initialize Mastro before creating Persistent states:                ║
+║ Please initialize Persistro before creating Persistent states:             ║
 ║                                                                            ║
 ║ void main() async {                                                        ║
 ║   WidgetsFlutterBinding.ensureInitialized();                               ║
-║   await MastroInit.initialize();                                           ║
+║   await Persistro.initialize();  // add this line                          ║
 ║   ...                                                                      ║
 ║   runApp(MaterialApp(                                                      ║
 ║     home: YourHomeWidget(),                                                ║
@@ -176,9 +195,9 @@ mixin PersistroMixin<T> on Basetro<T> {
       final data = encoder(value);
       await _sharedPreferences.setString(key, data);
       _lastSavedValue = data;
-      debugPrint('PERSISTRO: Persisted $key: $data');
+      mastroLog('State($_typeName) persisted $key: $data');
     } catch (e) {
-      debugPrint('PERSISTRO: Error persisting $key: $e');
+      mastroLog('State($_typeName) error persisting $key: $e');
     }
   }
 
@@ -194,10 +213,10 @@ mixin PersistroMixin<T> on Basetro<T> {
         value = decoder(data);
         _lastSavedValue = data;
         _isRestoring = false;
-        debugPrint('PERSISTRO: Restored $key: $data');
+        mastroLog('State($_typeName) restored $key: $data');
       }
     } catch (e) {
-      debugPrint('PERSISTRO: Error restoring $key: $e');
+      mastroLog('State($_typeName) error restoring $key: $e');
     }
   }
 
@@ -209,9 +228,9 @@ mixin PersistroMixin<T> on Basetro<T> {
       await _sharedPreferences.remove(key);
       value = super.value;
       _lastSavedValue = null;
-      debugPrint('Persistro: Cleared $key');
+      mastroLog('State($_typeName) cleared $key');
     } catch (e) {
-      debugPrint('Persistro: Error clearing $key: $e');
+      mastroLog('State($_typeName) error clearing $key: $e');
     }
   }
 
@@ -229,15 +248,17 @@ mixin PersistroMixin<T> on Basetro<T> {
     disposePersistence();
     super.dispose();
   }
+
+  String get _typeName => runtimeType.toString().replaceAll('<$T>', '');
 }
 
 /// A persistent version of the [Mastro] state container.
 ///
-/// Extends [Mastro] with persistence capabilities via [PersistroMixin], allowing values to
+/// Extends [Mastro] with persistence capabilities via [_PersistroMixin], allowing values to
 /// be saved and restored using [SharedPreferences].
 ///
 /// Type parameter [T] represents the type of the value being managed.
-class PersistroMastro<T> extends Mastro<T> with PersistroMixin<T> {
+class PersistroMastro<T> extends Mastro<T> with _PersistroMixin<T> {
   @override
   final String key;
 
@@ -389,11 +410,11 @@ class PersistroMastro<T> extends Mastro<T> with PersistroMixin<T> {
 
 /// A persistent version of the [Lightro] state container.
 ///
-/// Extends [Lightro] with persistence capabilities via [PersistroMixin], allowing values to
+/// Extends [Lightro] with persistence capabilities via [_PersistroMixin], allowing values to
 /// be saved and restored using [SharedPreferences].
 ///
 /// Type parameter [T] represents the type of the value being managed.
-class PersistroLightro<T> extends Lightro<T> with PersistroMixin<T> {
+class PersistroLightro<T> extends Lightro<T> with _PersistroMixin<T> {
   @override
   final String key;
 

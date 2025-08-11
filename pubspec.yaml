@@ -1,6 +1,6 @@
 name: mastro
 description: A robust state management solution for Flutter that seamlessly integrates reactive programming with event handling and persistence capabilities.
-version: 1.0.2
+version: 1.5.0
 homepage: https://github.com/Yousef-Shaiban/mastro
 
 environment:
@@ -10,8 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  provider: ^6.1.2
-  shared_preferences: ^2.3.4
+  provider: ^6.1.5
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
@@ -22,7 +22,7 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
-flutter:
+#flutter:
 
   # To add assets to your package, add an assets section, like this:
   # assets:

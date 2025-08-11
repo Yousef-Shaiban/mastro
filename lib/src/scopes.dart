@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'providers.dart';
-import 'state.dart';
+import 'package:mastro/mastro.dart';
+import 'package:provider/provider.dart';
 
 /// Manages pop navigation behavior and loading state within the Mastro framework.
 ///
@@ -15,7 +14,7 @@ class OnPopScope {
   /// The current loading state.
   ///
   /// A [Lightro<bool>] instance that tracks whether an operation is in progress.
-  final isLoading = false.lightro;
+  final isLoading = Lightro.of(false, showLogs: false);
 
   /// Creates an [OnPopScope] instance.
   ///
@@ -42,7 +41,7 @@ class MastroScope extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return onPopScope != null
-        ? ClassProvider(
+        ? Provider(
             create: (context) => onPopScope,
             child: child,
           )
