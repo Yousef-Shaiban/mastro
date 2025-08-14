@@ -31,8 +31,9 @@ class _UninitializedLateInitializationStateException<T> implements Exception {
   _UninitializedLateInitializationStateException(this.state);
 
   @override
-  String toString() => 'UninitializedLate${state._typeName}Exception: You are using ${state._typeName}<$T>.late() '
-      'and trying to access or modify its value before initializing it';
+  String toString() =>
+      'UninitializedLate${state._typeName}Exception: You are using ${state._typeName}<$T>.late() '
+      'and trying to access or modify its value before initializing it (its recommended to use state.when(uninitialized: () => ..., initialized: (value) => ...) when using late states)';
 }
 
 /// Defines a callback function type used for handling validation errors.
@@ -308,7 +309,10 @@ abstract class Basetro<T extends Object?> with ChangeNotifier {
 
   void _logStateChange(_BasetroState<T> previousState) {
     if (_state == previousState || _typeName.startsWith('Persistro')) return;
-    if (_showLogs) mastroLog('State($_typeName) changed: ${previousState is _Initialized<T> ? previousState.data.value : 'uninitialized'} -> $value');
+    if (_showLogs) {
+      mastroLog(
+          'State($_typeName) changed: ${previousState is _Initialized<T> ? previousState.data.value : 'uninitialized'} -> $value');
+    }
   }
 
   String get _typeName => runtimeType.toString().replaceAll('<$T>', '');
@@ -520,7 +524,8 @@ class Mastro<T extends Object?> extends Basetro<T> {
   /// age.value = 25;  // Valid, value set
   /// age.value = -5;  // Invalid, onValidationError called, value remains 25
   /// ```
-  void setValidator(bool Function(T value) validator, {ValidationErrorCallback<T>? onValidationError}) {
+  void setValidator(bool Function(T value) validator,
+      {ValidationErrorCallback<T>? onValidationError}) {
     _validator = validator;
     _onValidationError = onValidationError;
   }
@@ -582,7 +587,9 @@ class Mastro<T extends Object?> extends Basetro<T> {
       super.value = newValue;
     } else {
       _onValidationError?.call(newValue);
-      if (_showLogs) mastroLog('Mastro(${value.runtimeType}) validator failed for value: $newValue');
+      if (_showLogs) {
+        mastroLog('Mastro(${value.runtimeType}) validator failed for value: $newValue');
+      }
     }
   }
 

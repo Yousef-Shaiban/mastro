@@ -1,6 +1,6 @@
 name: mastro
 description: A robust state management solution for Flutter that seamlessly integrates reactive programming with event handling and persistence capabilities.
-version: 1.5.0
+version: 1.5.1
 homepage: https://github.com/Yousef-Shaiban/mastro
 
 environment:

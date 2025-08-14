@@ -33,7 +33,8 @@ class BoxProvider<T extends MastroBox> extends Provider<T> {
           },
           dispose: autoCleanupWhenUnmountedFromWidgetTree
               ? (context, value) {
-                  mastroLog("MastroBox($T) was automatically cleaned up when its BoxProvider was removed from the widget tree.\n"
+                  mastroLog(
+                      "MastroBox($T) was automatically cleaned up when its BoxProvider was removed from the widget tree.\n"
                       "To prevent this, set `autoCleanupWhenUnmountedFromWidgetTree: false`.");
                   value.cleanup();
                 }
@@ -52,13 +53,15 @@ class BoxProvider<T extends MastroBox> extends Provider<T> {
       if (e.valueType != T) rethrow;
       throw FlutterError.fromParts([
         ErrorSummary('BoxProvider<$T> not found in the widget tree.'),
-        ErrorDescription('BoxProvider.of<$T>() was called with a context that does not include a BoxProvider<$T>.'),
+        ErrorDescription(
+            'BoxProvider.of<$T>() was called with a context that does not include a BoxProvider<$T>.'),
         ErrorHint('Ensure you have wrapped your widget tree with:\n\n'
             'BoxProvider<$T>(\n'
             '  create: (_) => YourBox(),\n'
             '  child: YourView(),\n'
             ')'),
-        ErrorHint('\nOr pass the box explicitly to MastroView via the `box:` constructor parameter.'),
+        ErrorHint(
+            '\nOr pass the box explicitly to MastroView via the `box:` constructor parameter.'),
         ErrorDescription('\nContext used: $context'),
       ]);
     }
@@ -92,7 +95,8 @@ class ClassProvider<T> extends Provider<T> {
       if (e.valueType != T) rethrow;
       throw FlutterError.fromParts([
         ErrorSummary('ClassProvider<$T> not found in the widget tree.'),
-        ErrorDescription('ClassProvider.of<$T>() was called with a context that does not include a ClassProvider<$T>.'),
+        ErrorDescription(
+            'ClassProvider.of<$T>() was called with a context that does not include a ClassProvider<$T>.'),
         ErrorHint('Ensure you have wrapped your widget tree with:\n\n'
             'ClassProvider<$T>(\n'
             '  create: (_) => YourClass(),\n'

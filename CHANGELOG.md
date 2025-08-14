@@ -1,3 +1,7 @@
+## 1.5.1
+* Minor bug fixes and improvements.
+* README overhaul with clearer structure and richer explanations.
+
 ## 1.5.0
 
 ### Breaking changes
@@ -92,24 +96,7 @@
 
 * Minor fixes and improvements.
 
-
 ## 0.9.0
 
 * Initial release.
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 0.9.7
-
-* Minor fixes and improvements.
 

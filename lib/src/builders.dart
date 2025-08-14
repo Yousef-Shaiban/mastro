@@ -78,7 +78,9 @@ class _TagBuilderState extends State<TagBuilder> {
     if (widget.tag != widget.box.taggable.value) return;
 
     final phase = SchedulerBinding.instance.schedulerPhase;
-    final canSetNow = phase == SchedulerPhase.idle || phase == SchedulerPhase.transientCallbacks || phase == SchedulerPhase.midFrameMicrotasks;
+    final canSetNow = phase == SchedulerPhase.idle ||
+        phase == SchedulerPhase.transientCallbacks ||
+        phase == SchedulerPhase.midFrameMicrotasks;
 
     if (canSetNow) {
       _deferToken++;
@@ -169,14 +171,15 @@ class MastroBuilder<T> extends StatefulWidget {
 
 /// The state class for [MastroBuilder].
 class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
-  late T _previousValue;
+  T? _previousValue;
 
   bool _framePending = false;
   int _deferToken = 0;
 
   final Set<Basetro<dynamic>> _attached = {};
 
-  bool _should(T prev, T next) {
+  bool _should(T? prev, T? next) {
+    if (next == null || prev == null) return true;
     return widget.shouldRebuild?.call(prev, next) ?? true;
   }
 
@@ -191,12 +194,14 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
   void _updateState() {
     if (!mounted) return;
 
-    final next = widget.state.value;
+    final next = widget.state.when(uninitialized: () => null, initialized: (value) => value);
     if (!_should(_previousValue, next)) return;
 
     final phase = SchedulerBinding.instance.schedulerPhase;
 
-    final canSetNow = phase == SchedulerPhase.idle || phase == SchedulerPhase.transientCallbacks || phase == SchedulerPhase.midFrameMicrotasks;
+    final canSetNow = phase == SchedulerPhase.idle ||
+        phase == SchedulerPhase.transientCallbacks ||
+        phase == SchedulerPhase.midFrameMicrotasks;
 
     if (canSetNow) {
       _deferToken++;
@@ -214,7 +219,7 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
       _framePending = false;
       if (!mounted || myToken != _deferToken) return;
 
-      final latest = widget.state.value;
+      final latest = widget.state.when(uninitialized: () => null, initialized: (value) => value);
       if (_should(_previousValue, latest)) {
         setState(() {
           _previousValue = latest;
@@ -226,7 +231,7 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
   @override
   void initState() {
     super.initState();
-    _previousValue = widget.state.value;
+    _previousValue = widget.state.when(uninitialized: () => null, initialized: (value) => value);
     _attach(widget.state);
     for (final s in (widget.listeners ?? const <Basetro<dynamic>>[])) {
       _attach(s);
@@ -254,7 +259,7 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
     }
 
     if (oldWidget.state != widget.state) {
-      _previousValue = widget.state.value;
+      _previousValue = widget.state.when(uninitialized: () => null, initialized: (value) => value);
     }
   }
 
