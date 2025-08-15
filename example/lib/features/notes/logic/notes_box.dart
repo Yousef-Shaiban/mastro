@@ -16,7 +16,7 @@ class NotesBox extends MastroBox<MastroEvent> {
 
   @override
   void init() {
-    notes.dependsOn(sortByPinned);
+    notes.dependsOn([sortByPinned]);
     super.init();
   }
 

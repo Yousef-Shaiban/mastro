@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mastro/mastro.dart';
-import 'package:provider/provider.dart';
 
 /// Manages pop navigation behavior and loading state within the Mastro framework.
 ///
@@ -41,7 +40,7 @@ class MastroScope extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return onPopScope != null
-        ? Provider(
+        ? ClassProvider(
             create: (context) => onPopScope,
             child: child,
           )

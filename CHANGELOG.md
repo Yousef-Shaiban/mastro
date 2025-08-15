@@ -1,3 +1,30 @@
+## 1.6.0
+
+* Minor bug fixes and improvements.
+* Updated documentation.
+
+### 🚨 Breaking / Behaviour Changes
+- **Removed `MastroView.rebuild()`**  
+  The manual rebuild method has been deleted. Views should rebuild reactively via `MastroBuilder`, `TagBuilder`, and state updates.
+- **Removed standalone `compute()` on state**  
+  All computed/derived wiring now goes through `dependsOn([...], compute: ...)`. See the **Migration Guide** below.
+- **SEQUENTIAL events – waiting behaviour updated**  
+  The semantics for *waiting* on `EventRunningMode.sequential` were refined. Each `execute(...)` now completes when **its own enqueued item** finishes, while the queue continues to drain in order. Code that implicitly relied on the first caller waiting for the **entire** queue to finish should be updated to `await` the specific calls it cares about
+
+### ✨ Added
+- **`.safe`** on state containers (`Basetro<T>.safe`)  
+  A nullable accessor that returns `null` before a `.late()` state is initialized. Ideal for first-paint reads without throwing.
+- **`clearDependencies()`** on `Mastro<T>`  
+  Removes all wired dependencies established via `dependsOn(...)` (idempotent). Use when changing the set of sources dynamically.
+
+### 🔁 Changed
+- **Derived values via `dependsOn`**  
+  `dependsOn([...], compute: ...)` now covers what `compute()` used to do and more:
+    - Depend on **multiple** states simultaneously (value intersections).
+    - Provide a `compute` function to set a derived value.
+    - **Notify‑only mode:** omit `compute` to propagate changes without mutating the dependent’s `.value`.
+
+
 ## 1.5.1
 * Minor bug fixes and improvements.
 * README overhaul with clearer structure and richer explanations.

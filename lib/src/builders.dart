@@ -194,7 +194,7 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
   void _updateState() {
     if (!mounted) return;
 
-    final next = widget.state.when(uninitialized: () => null, initialized: (value) => value);
+    final next = widget.state.safe;
     if (!_should(_previousValue, next)) return;
 
     final phase = SchedulerBinding.instance.schedulerPhase;
@@ -219,7 +219,7 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
       _framePending = false;
       if (!mounted || myToken != _deferToken) return;
 
-      final latest = widget.state.when(uninitialized: () => null, initialized: (value) => value);
+      final latest = widget.state.safe;
       if (_should(_previousValue, latest)) {
         setState(() {
           _previousValue = latest;
@@ -231,7 +231,7 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
   @override
   void initState() {
     super.initState();
-    _previousValue = widget.state.when(uninitialized: () => null, initialized: (value) => value);
+    _previousValue = widget.state.safe;
     _attach(widget.state);
     for (final s in (widget.listeners ?? const <Basetro<dynamic>>[])) {
       _attach(s);
@@ -259,7 +259,7 @@ class _MastroBuilderState<T> extends State<MastroBuilder<T>> {
     }
 
     if (oldWidget.state != widget.state) {
-      _previousValue = widget.state.when(uninitialized: () => null, initialized: (value) => value);
+      _previousValue = widget.state.safe;
     }
   }
 

@@ -11,16 +11,14 @@ import 'package:mastro/src/internal/extra.dart';
 /// Orchestrates UI signaling (tags), loose callbacks, and event execution with
 /// **parallel / sequential / solo** policies.
 ///
-/// - **Tagging** → [tag], [taggable] + `TagBuilder` to nudge parts of the UI.
-/// - **Loose callbacks** → [registerCallback], [trigger] for decoupled actions.
-/// - **Events** → [execute], [executeBlockPop] honoring:
-///   - `EventRunningMode.parallel`: run freely (default).
-///   - `EventRunningMode.sequential`: **per-type** FIFO queue (awaitable per call).
-///   - `EventRunningMode.solo`: **per-type exclusivity** — at most one instance
-///     of a given event *type* runs at a time; different SOLO types may run concurrently.
-///
-/// When the last view detaches and [autoCleanupWhenAllViewsDetached] is `true`,
-/// [cleanup] is invoked automatically.
+/// Behavior:
+/// - **SEQUENTIAL (awaitable):**
+///   - If a lane is busy for a given event *type*, `execute(...)` enqueues and
+///     returns a `Future` that completes when **that specific item** finishes.
+///   - The first (lane owner) call does **not** await the entire drain; it
+///     returns right after its own item finishes. The queue is drained
+///     asynchronously (per-type FIFO preserved).
+///   - Each queued item preserves its own `around` wrapper (e.g., pop-block UI).
 abstract class MastroBox<T extends MastroEvent> {
   /// Constructs a new [MastroBox] and calls [init].
   MastroBox() {
@@ -36,20 +34,23 @@ abstract class MastroBox<T extends MastroEvent> {
   final _subTagCallbacks = <String, void Function(Map<String, dynamic>? data)>{};
 
   /// Set a tag value and notify listeners.
+  @mustCallSuper
   void tag({required String tag}) {
     _subTagTrigger.nonNotifiableSetter = tag;
     _subTagTrigger.notify();
   }
 
-  /// Current tag as a listenable (consumed by `TagBuilder`).
+  /// Current tag as a listenable (consumed by TagBuilder).
   Lightro get taggable => _subTagTrigger;
 
   /// Invoke a registered loose callback by [key]. No-op if missing.
+  @mustCallSuper
   void trigger({required String key, Map<String, dynamic>? data}) {
     _subTagCallbacks[key]?.call(data);
   }
 
   /// Register a loose callback for [key] (overwrites if exists).
+  @mustCallSuper
   void registerCallback({
     required String key,
     required void Function(Map<String, dynamic>? data) callback,
@@ -58,6 +59,7 @@ abstract class MastroBox<T extends MastroEvent> {
   }
 
   /// Remove a previously registered callback.
+  @mustCallSuper
   void unregisterCallback({required String key}) {
     _subTagCallbacks.remove(key);
   }
@@ -78,7 +80,7 @@ abstract class MastroBox<T extends MastroEvent> {
 
   /// Called when a [MastroView] attaches. Always call `super`.
   @mustCallSuper
-  void onViewAttached<V extends MastroView>(V view) {
+  void onViewAttached(MastroView view) {
     _attachedViews.add(view);
     mastroLog("MastroView(${view.runtimeType}) attached to MastroBox($runtimeType)");
   }
@@ -88,7 +90,7 @@ abstract class MastroBox<T extends MastroEvent> {
   /// If [autoCleanupWhenAllViewsDetached] is `true` and this was the last view,
   /// [cleanup] is called automatically.
   @mustCallSuper
-  void onViewDetached<V extends MastroView>(V view) {
+  void onViewDetached(MastroView view) {
     _attachedViews.remove(view);
     mastroLog("MastroView(${view.runtimeType}) detached from MastroBox($runtimeType)");
     if (autoCleanupWhenAllViewsDetached && _attachedViews.isEmpty) {
@@ -130,21 +132,27 @@ abstract class MastroBox<T extends MastroEvent> {
     _seqQueues.clear();
     _attachedViews.clear();
     _subTagCallbacks.clear();
+    // Note: we cannot reliably flip any active OnPopScope off here without a BuildContext.
+    // The guard map is ephemeral and will naturally drop as this instance is GC'd.
+    _popGuards.clear();
   }
 
   // ──────────────────────────────── Execution ────────────────────────────────
 
   /// Per-type SOLO guard: currently running SOLO event types.
-  ///
-  /// If a type is present, another SOLO event of the **same** type is ignored
-  /// until the running one finishes. Different types can run in parallel.
   final _activeSoloEvents = <Type>{};
 
   /// Runtime types currently running a SEQUENTIAL lane.
   final _activeSequentialEvents = <Type>{};
 
-  /// Per-type FIFO queues for SEQUENTIAL events (O(1) enqueue/dequeue).
+  /// Per-type FIFO queues for SEQUENTIAL events.
   final Map<Type, Queue<_QueuedEvent<MastroEvent>>> _seqQueues = {};
+
+  /// Back-blocking guard counts per [OnPopScope] (for BlockPop events).
+  ///
+  /// We increment on each `_awaitLoading` begin and decrement on finally.
+  /// `isLoading` flips to true when count goes 0→1, and to false when it goes 1→0.
+  final Map<OnPopScope, int> _popGuards = {};
 
   /// Default callbacks instance when callers pass `null`.
   Callbacks get _defaultCallbacks => Callbacks.on(defaultCallbacksName, (_) {});
@@ -153,7 +161,7 @@ abstract class MastroBox<T extends MastroEvent> {
   ///
   /// - Applies SOLO/SEQUENTIAL policies.
   /// - Optionally wraps execution with [around] (e.g., to block back navigation).
-  /// - Ensures cleanup of flags in `finally`.
+  /// - Ensures proper lane cleanup (flags cleared after queue drains).
   Future<void> _run(
     T event, {
     Callbacks? callbacks,
@@ -176,7 +184,8 @@ abstract class MastroBox<T extends MastroEvent> {
     if (effectiveMode == EventRunningMode.sequential) {
       if (_activeSequentialEvents.contains(type)) {
         mastroLog('MastroBox($runtimeType): SEQUENTIAL($type) queued.');
-        return _enqueueSequential(event, callbacks);
+        // Awaitable: enqueue and return this item's future.
+        return _enqueueSequential(event, callbacks, around);
       } else {
         _activeSequentialEvents.add(type);
       }
@@ -191,10 +200,17 @@ abstract class MastroBox<T extends MastroEvent> {
         await runImpl();
       }
     } finally {
-      // Drain queued items for this type (if sequential), then clear flags.
       if (effectiveMode == EventRunningMode.sequential) {
-        await _processSequentialEvents(type);
-        _activeSequentialEvents.remove(type);
+        // Fire-and-forget drain so the first caller doesn't await the entire lane.
+        unawaited(
+          _processSequentialEvents(type).catchError((e, st) {
+            mastroLog(
+              'MastroBox($runtimeType): error while draining SEQUENTIAL($type): $e',
+            );
+          }).whenComplete(() {
+            _activeSequentialEvents.remove(type);
+          }),
+        );
       }
       if (effectiveMode == EventRunningMode.solo) {
         _activeSoloEvents.remove(type);
@@ -204,12 +220,16 @@ abstract class MastroBox<T extends MastroEvent> {
 
   /// Enqueue a SEQUENTIAL [event] to its per-type queue and
   /// return a Future that completes when **that specific queued item** finishes.
-  Future<void> _enqueueSequential(T event, Callbacks? callbacks) {
+  Future<void> _enqueueSequential(
+    T event,
+    Callbacks? callbacks,
+    Future<void> Function(Future<void> Function())? around,
+  ) async {
     final type = event.runtimeType;
     final q = _seqQueues.putIfAbsent(type, () => Queue<_QueuedEvent<MastroEvent>>());
-    final qe = _QueuedEvent<MastroEvent>(event, callbacks);
+    final qe = _QueuedEvent<MastroEvent>(event, callbacks, around);
     q.add(qe);
-    return qe.completer.future; // resolves when the queued item runs and completes
+    return await qe.completer.future;
   }
 
   /// Drain the SEQUENTIAL queue for [eventType] in FIFO order.
@@ -226,8 +246,15 @@ abstract class MastroBox<T extends MastroEvent> {
 
     while (q.isNotEmpty) {
       final next = q.removeFirst();
+
+      Future<void> runImpl() => next.event.implement(this, next.callbacks ?? _defaultCallbacks);
+
       try {
-        await next.event.implement(this, next.callbacks ?? _defaultCallbacks);
+        if (next.around != null) {
+          await next.around!(runImpl);
+        } else {
+          await runImpl();
+        }
         if (!next.completer.isCompleted) {
           next.completer.complete();
         }
@@ -239,6 +266,8 @@ abstract class MastroBox<T extends MastroEvent> {
         firstStack ??= st;
       }
     }
+
+    _seqQueues.remove(eventType);
 
     if (firstError != null) {
       Error.throwWithStackTrace(firstError, firstStack!);
@@ -259,6 +288,9 @@ abstract class MastroBox<T extends MastroEvent> {
   /// Execute an event while **blocking back navigation** via an [OnPopScope]
   /// provided by the nearest `MastroScope`.
   ///
+  /// Reference-counted: if multiple BlockPop events overlap on the same
+  /// [OnPopScope], back navigation is unblocked only after the last one finishes.
+  ///
   /// Throws a [StateError] if `OnPopScope` is not available.
   @nonVirtual
   Future<void> executeBlockPop(
@@ -275,6 +307,9 @@ abstract class MastroBox<T extends MastroEvent> {
       );
 
   /// Wrap a future with an `OnPopScope`-driven loading/disable-back phase.
+  ///
+  /// Uses a **reference-counted** guard so overlapping BlockPop calls
+  /// don't prematurely re-enable back navigation.
   Future<void> _awaitLoading({
     required AsyncCallback future,
     required BuildContext context,
@@ -284,21 +319,46 @@ abstract class MastroBox<T extends MastroEvent> {
       throw StateError(
         'Cannot execute BlockPop events without MastroScope!\n\n'
         'Wrap your app:\n'
-        'MaterialApp(\n'
-        '  home: MastroScope(\n'
-        '    onPopScope: OnPopScope(onPopWaitMessage: () { .... }),\n'
-        '    child: YourHomeWidget(),\n'
+        'MastroScope(\n'
+        '  onPopScope: OnPopScope(onPopWaitMessage: (context) { .... }),\n'
+        '  child: MaterialApp(\n'
+        '    home: YourHomeWidget()\n'
         '  ),\n'
         ')',
       );
     }
-    popScope.isLoading.value = true;
-    mastroLog('Back navigation blocked');
+
+    _popGuardBegin(popScope);
     try {
       await future();
     } finally {
-      popScope.isLoading.value = false;
-      mastroLog('Back navigation unblocked');
+      _popGuardEnd(popScope);
+    }
+  }
+
+  /// Increment the BlockPop guard for [popScope].
+  void _popGuardBegin(OnPopScope popScope) {
+    final current = _popGuards[popScope] ?? 0;
+    _popGuards[popScope] = current + 1;
+    if (current == 0) {
+      if (!popScope.isLoading.value) {
+        popScope.isLoading.value = true;
+        mastroLog('Back navigation blocked');
+      }
+    }
+  }
+
+  /// Decrement the BlockPop guard for [popScope] and release if last.
+  void _popGuardEnd(OnPopScope popScope) {
+    final current = _popGuards[popScope] ?? 0;
+    if (current <= 1) {
+      _popGuards.remove(popScope);
+      if (popScope.isLoading.value) {
+        popScope.isLoading.value = false;
+        mastroLog('Back navigation unblocked');
+      }
+    } else {
+      _popGuards[popScope] = current - 1;
     }
   }
 }
@@ -309,5 +369,8 @@ class _QueuedEvent<E extends MastroEvent> {
   final Callbacks? callbacks;
   final Completer<void> completer;
 
-  _QueuedEvent(this.event, this.callbacks) : completer = Completer<void>();
+  /// Per-item wrapper to apply when this queued event runs.
+  final Future<void> Function(Future<void> Function())? around;
+
+  _QueuedEvent(this.event, this.callbacks, this.around) : completer = Completer<void>();
 }

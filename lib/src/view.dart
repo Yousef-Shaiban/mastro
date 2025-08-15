@@ -29,13 +29,6 @@ abstract class MastroView<T extends MastroBox> extends StatefulWidget {
   /// Returns the constructed widget tree.
   Widget build(BuildContext context, T box);
 
-  /// Forces a rebuild of the view.
-  ///
-  /// [context] is the current build context. Triggers a state update to rebuild the widget tree.
-  void rebuild(BuildContext context) {
-    context.findAncestorStateOfType<_MastroViewState<T>>()?.rebuildPage();
-  }
-
   /// Called when the view is first initialized.
   ///
   /// [context] is the current build context. [box] is the associated [MastroBox].
@@ -97,11 +90,6 @@ class _MastroViewState<T extends MastroBox> extends State<MastroView> with Widge
         widget.onHide(context, box);
         break;
     }
-  }
-
-  /// Triggers a rebuild of the view’s widget tree.
-  void rebuildPage() {
-    setState(() {});
   }
 
   @override

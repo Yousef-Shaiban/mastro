@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mastro/mastro.dart';
-
-import 'features/notes/logic/notes_box.dart';
-import 'features/notes/presentation/notes_view.dart';
+import 'package:mastro_example/features/notes/logic/notes_box.dart';
+import 'package:mastro_example/features/notes/presentation/notes_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,6 +1,6 @@
 <img src="https://i.imgur.com/zLRQvjd.png" > 
 
-A pragmatic, fast, and ergonomic Flutter state toolkit that blends **reactive state**, **event orchestration**, **persistence**, and **view/scope glue** into a clean, testable, **feature‑based** architecture.
+A pragmatic, fast, and ergonomic Flutter state toolkit that blends **reactive state**, **event orchestration**, **persistence**, and **view/scope glue** into a clean, testable, feature‑based architecture.
 
 > Zero boilerplate for simple state — strong patterns for complex flows.
 
@@ -12,7 +12,7 @@ A pragmatic, fast, and ergonomic Flutter state toolkit that blends **reactive st
 - [Why Mastro](#why-mastro)
 - [Installation](#installation)
 - [Project Structure (Feature‑based)](#project-structure-feature-based)
-- [Overall Flow (Clear, Step‑by‑Step)](#overall-flow-clear-stepbystep)
+- [Overall Flow (Clear, Step‑by‑Step)](#overall-flow-clear-step-by-step)
 - [Quick Start](#quick-start)
 - [Reactive State](#reactive-state)
   - [Lightro vs Mastro (Comparison)](#lightro-vs-mastro-comparison)
@@ -21,17 +21,17 @@ A pragmatic, fast, and ergonomic Flutter state toolkit that blends **reactive st
   - [Mastro Functions (What/When/How)](#mastro-functions-whatwhenhow)
   - [.modify() vs .value (when to use which?)](#modify-vs-value-when-to-use-which)
   - [Validation & Error Handling](#validation--error-handling)
-  - [`late()` state](#late-state)
+  - [late() state](#late-state)
   - [AsyncState](#asyncstate)
   - [Custom Sealed State Classes (beyond AsyncState)](#custom-sealed-state-classes-beyond-asyncstate)
-- [Persistence (Persistro → PersistroLightro → PersistroMastro)](#persistence-persistro--persistrolightro--persistromastro)
+- [Persistence (Persistro → PersistroLightro → PersistroMastro)](#persistence-persistro--pestristrolightro--pestristromastro)
 - [Boxes & Events](#boxes--events)
   - [Local vs Scoped (Global) Boxes](#local-vs-scoped-global-boxes)
   - [MastroBox lifecycle & options](#mastrobox-lifecycle--options)
   - [Creating a Box](#creating-a-box)
-  - [Actions **with or without** Events](#actions-with-or-without-events)
+  - [Actions with or without Events](#actions-with-or-without-events)
   - [Creating Events (optional)](#creating-events-optional)
-  - [Running Events](#running-events)
+  - [Running Events (awaitable)](#running-events-awaitable)
   - [EventRunningMode](#eventrunningmode)
   - [Box Tagging & Loose Callbacks](#box-tagging--loose-callbacks)
 - [Widget Building](#widget-building)
@@ -40,6 +40,7 @@ A pragmatic, fast, and ergonomic Flutter state toolkit that blends **reactive st
   - [RebuildBoundary](#rebuildboundary)
 - [MastroScope (back‑blocking UX)](#mastroscope-backblocking-ux)
 - [MastroView (view glue & lifecycle)](#mastroview-view-glue--lifecycle)
+- [Provider placement with `MaterialApp` (important)](#provider-placement-with-materialapp-important)
 - [Public API Reference (Quick Links)](#public-api-reference-quick-links)
 - [FAQ](#faq)
 - [Design Patterns & Recipes](#design-patterns--recipes)
@@ -49,28 +50,27 @@ A pragmatic, fast, and ergonomic Flutter state toolkit that blends **reactive st
 
 ## Features
 
-- **Feature‑based structure:** each feature owns its presentation, logic (boxes & events), and optional states.
-- **Reactive state:** `Lightro<T>` and `Mastro<T>` both support `.value`, `.modify`, `.late()` and builder helpers.
-- **Computed & orchestration:** `Mastro<T>` adds `compute`, `dependsOn`, `setValidator`, and `observe`.
-- **Events engine (optional):** rich execution modes, callbacks, and back‑blocking UX — but **you can also just call box methods**.
-- **Gesture‑friendly builders:** `MastroBuilder` / `TagBuilder` rebuild immediately when safe.
-- **Persistence:** `PersistroLightro` / `PersistroMastro` built on top of `SharedPreferences` via `Persistro`.
-- **Scopes:** `MastroScope` integrates back‑blocking UX for long‑running tasks.
-- **Views:** `MastroView<T>` pairs a screen with its box (local or scoped) and exposes lifecycle hooks.
+- Feature‑based structure: each feature owns its presentation, logic (boxes & events), and optional states.
+- Reactive state: `Lightro<T>` and `Mastro<T>` both support `.value`, `.modify(...)`, `.late()` and builder helpers.
+- **New:** `.safe` accessor on state containers for late initialization ergonomics.
+- **New:** `Mastro.dependsOn(...)` handles both **computed** *and* **notify‑only** modes (the old `compute()` method is removed).
+- Events engine (optional): rich execution modes, callbacks, and back‑blocking UX — but you can also just call box methods.
+- Gesture‑friendly builders: `MastroBuilder` / `TagBuilder` rebuild immediately when safe.
+- Persistence: `PersistroLightro` / `PersistroMastro` built on top of `SharedPreferences` via `Persistro`.
+- Scopes: `MastroScope` integrates back‑blocking UX for long‑running tasks.
+- Views: `MastroView<T>` pairs a screen with its box (local or scoped) and exposes lifecycle hooks including **`onViewAttached` / `onViewDetached`**.
 
 ---
 
 ## Why Mastro
 
-Mastro is intentionally **structured and explicit** — think of it like the *statically‑typed* approach to Flutter state.
+Mastro is intentionally structured and explicit — think of it like the statically‑typed approach to Flutter state.
 
-- **Readable by design:** In `MastroBuilder`, you explicitly point to the **exact** state(s) that drive a widget. This precision keeps reviewers oriented and makes behavior obvious.
+- **Readable by design:** In `MastroBuilder`, you explicitly point to the exact state(s) that drive a widget. This precision keeps reviewers oriented and makes behavior obvious. Tools like GetX or Flutter Signals can feel lighter because they infer dependencies automatically. Mastro trades a bit of ceremony for **clarity, predictability, and team readability**.
 - **Well‑defined structure:** Boxes own logic; views are thin; persistence is explicit. This scales cleanly as features multiply.
-- **Minimal rebuilds:** Only the listening subtree rebuilds — no hidden global invalidations. Refine further with `listeners` and `shouldRebuild` to make rebuilds laser‑focused.
-- **Explicit dependencies:** Use `compute` and `dependsOn` to *declare* why something updates.  
-  Tools like GetX or Flutter Signals can feel lighter because they infer dependencies automatically. Mastro trades a bit of ceremony for **clarity, predictability, and team readability**.
-- **Flexible orchestration:** For simple UIs, **call box methods directly**. When flows get tricky, opt into **events** for concurrency modes (`parallel`/`sequential`/`solo`), loose callbacks, and back‑blocking UX.
-- **Balanced philosophy:** Not the “easiest” at first glance, but like a statically typed language, it favors **readability, well‑defined structure, and correctness** — with **minimal rebuilds** and **rich features** when you need them.
+- **Minimal rebuilds:** Only the listening subtree rebuilds — no hidden global invalidations. Refine with `listeners` and `shouldRebuild` to make rebuilds laser‑focused.
+- **Explicit dependencies:** Use `dependsOn([...], compute: ...)` to declare why something updates. Unlike implicit dependency systems, Mastro favors clarity and predictability.
+- **Flexible orchestration:** For simple UIs, call box methods directly. When flows get tricky, opt into events for concurrency modes (`parallel`/`sequential`/`solo`), loose callbacks, and back‑blocking UX.
 
 ---
 
@@ -94,27 +94,27 @@ void main() async {
 
 ## Project Structure (Feature‑based)
 
-Keep **each feature self‑contained**: UI, logic (boxes + actions/events), and optional typed states. Shared bits live in `core/`.
+Keep each feature self‑contained: UI, logic (boxes + actions/events), and optional typed states. Shared bits live in `core/`.
 
-### 📦 Recommended Layout (visual + consistent)
+### Recommended Layout (visual + consistent)
 
-```text
+```
 lib/
-  core/                         # 🎨 theme · 🧭 router · 🔧 DI · 🧱 shared states
+  core/                         # theme · router · DI · shared states
     theme/
     routing/
     env/
     states/
   features/
     auth/
-      presentation/             # 🖼️ widgets & screens (MastroView subclasses)
+      presentation/             # widgets & screens
         auth_view.dart
         widgets/
           auth_form.dart
-      logic/                    # 🧠 box + actions (+ optional events)
+      logic/                    # box + events
         auth_box.dart
         auth_event.dart         # (optional)
-      states/                   # 🧩 sealed/union types (optional)
+      states/                   # sealed/union types (optional)
         auth_states.dart
     todos/
       presentation/
@@ -124,18 +124,19 @@ lib/
       logic/
         todos_box.dart
         todos_event.dart        # (optional)
-  app.dart                      # 🏠 root MaterialApp / scopes / providers
-  main.dart                     # 🚀 entry point
+  app.dart                      # root MaterialApp / scopes / providers
+  main.dart                     # entry point
 ```
 
 **Naming convention (logic):**
+
 - `*_box.dart` for boxes
 - `*_event.dart` for events (optional)
 - `*_view.dart` for views
 
-### 🧱 App‑lifetime boxes
+### App‑lifetime boxes
 
-If you want a box to **live for the whole app session**, provide it **above** your app widget (wrap `MaterialApp`)
+If you want a box to live for the whole app session, provide it above your app widget (wrap `MaterialApp`).
 
 ```dart
 void main() {
@@ -156,25 +157,25 @@ void main() {
 
 ## Overall Flow (Clear, Step‑by‑Step)
 
-**0) Choose where your box lives**
+1) **Choose where your box lives**
 - **Scoped (Global)** — provide it near the app root with `BoxProvider` / `MultiBoxProvider` if multiple screens need the same instance.
 - **Local** — pass a factory to the `MastroView` super constructor if the box is screen‑local.
 
-**1) Render the view**
-- Create `class MyView extends MastroView<MyBox>` (**generic is mandatory**).
+2) **Render the view**
+- Create `class MyView extends MastroView<MyBox>` (generic is mandatory).
 - Inside `build(context, box)`, you get a typed `MyBox` whether it’s local or resolved from `BoxProvider`.
 
-**2) Build the UI from reactive state**
+3) **Build the UI from reactive state**
 - Use `MastroBuilder` for specific state and `TagBuilder` for “ping refreshes” (tags).
 
-**3) Perform actions**
-- **Simplest:** call **box methods** (no events needed).
-- **Richer orchestration:** dispatch **events** (`box.execute(...)`) to get concurrency modes, loose callbacks, and optional back‑blocking (`executeBlockPop`).
+4) **Perform actions**
+- Simplest: call box methods (no events needed).
+- Richer orchestration: dispatch events (`box.execute(...)`) to get concurrency modes, loose callbacks, and optional back‑blocking (`executeBlockPop`).
 
-**4) (Optional) Persist state**
+5) **(Optional) Persist state**
 - Swap to `PersistroLightro` / `PersistroMastro` when a value must survive app restarts.
 
-**5) (Optional) Scope UX**
+6) **(Optional) Scope UX**
 - Wrap screens with `MastroScope` to enable back‑blocking during long tasks.
 
 ---
@@ -196,37 +197,36 @@ class CounterApp extends StatelessWidget {
   }
 }
 
-class CounterBox extends MastroBox<CounterEvent> {
+class CounterBox extends MastroBox {
   final count = 0.lightro;
 
   // Simple action (no event required)
   void increment() => count.value++;
 }
 
-
 class CounterView extends MastroView<CounterBox> {
-  const CounterView({super.key}) : super(box: () => CounterBox()); // local box factory
+  CounterView({super.key}) : super(box: () => CounterBox()); // local box factory
 
   @override
   Widget build(BuildContext context, CounterBox box) {
     return Scaffold(
-        appBar: AppBar(title: const Text('Counter')),
-        body: Center(
-          child: MastroBuilder(
-            state: box.count,
-            builder: (state, context) => Text('Count: ${state.value}', style: const TextStyle(fontSize: 36)),
-          ),
+      appBar: AppBar(title: const Text('Counter')),
+      body: Center(
+        child: MastroBuilder(
+          state: box.count,
+          builder: (state, context) => Text('Count: ${state.value}', style: const TextStyle(fontSize: 36)),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: box.increment,
-          child: const Icon(Icons.add),
-        )
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: box.increment,
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }
 ```
 
-> **Flexibility:** Keep things simple with **box methods**; use **events** only where you need their extra power.
+> Flexibility: Keep things simple with box methods; use events only where you need their extra power.
 
 ---
 
@@ -234,15 +234,17 @@ class CounterView extends MastroView<CounterBox> {
 
 ### Lightro vs Mastro (Comparison)
 
-| Capability                         | Lightro<T> | Mastro<T> | Example |
-| ---                                | :--:       | :--:      | --- |
-| Reactive `.value`                  | ✅          | ✅         | `state.value = x` |
-| In‑place `modify`                  | ✅          | ✅         | `state.modify((s) => s.value++)` |
-| Uninitialized start `late()`       | ✅          | ✅         | `final token = Lightro<String>.late();` |
-| Computed values (`compute`)    | ❌          | ✅         | `final doubled = count.compute((v) => v * 2);` |
-| Dependencies (`dependsOn`)     | ❌          | ✅         | `total.dependsOn(price); total.dependsOn(qty);` |
-| Validation (`setValidator`)        | ❌          | ✅         | `state.setValidator((v) => v >= 0);` |
-| Observers (`observe`)              | ❌          | ✅         | `state.observe('log', print);` |
+| Capability | Lightro | Mastro | Example |
+| --- | --- | --- | --- |
+| Reactive `.value` | ✅ | ✅ | `state.value = x` |
+| In‑place `modify` | ✅ | ✅ | `state.modify((s) => s.field = ...)` |
+| Uninitialized start `late()` | ✅ | ✅ | `final token = Lightro<String>.late();` |
+| Computed values | — | ✅ | `sum.dependsOn([a,b], compute: () => a.value + b.value);` |
+| Dependencies (`dependsOn`) | — | ✅ | `watcher.dependsOn([price, qty]);` (notify‑only if `compute` omitted) |
+| Validation (`setValidator`) | — | ✅ | `state.setValidator((v) => v >= 0);` |
+| Observers (`observe`) | — | ✅ | `state.observe('log', print);` |
+
+> **Heads‑up:** the standalone `compute()` method has been **removed**. Use `dependsOn([...], compute: ...)` to derive values, or omit `compute` for notify‑only wiring.
 
 ### Lightro
 
@@ -265,14 +267,13 @@ class Profile { String name; int age; Profile(this.name, this.age); }
 
 final profile = Profile('Alice', 30).mastro;
 
-profile.modify((s) {
+// In-place updates; one notify at the end.
+await profile.modify((s) {
   s.value.name = 'Bob';
   s.value.age++;
 });
 
-final factor = 2;
-final scaledAge = profile.compute((p) => p.age * factor);
-
+// Observe & validate
 profile
   ..setValidator((p) => p.name.isNotEmpty && p.age >= 0)
   ..observe('log', (p) => debugPrint('Profile → ${p.name}(${p.age})'));
@@ -280,77 +281,64 @@ profile
 
 ### Mastro Functions (What/When/How)
 
-- **`compute<R>(R Function(T value), {bool Function(R value)? validator, void Function(R invalid)? onValidationError}) → Mastro<R>`**  
-  **What:** create a **derived** reactive value from this `Mastro<T>`.  
-  **When:** you need a value kept in sync with a source (and optionally validated).  
-  **How:** provide a pure function; updates propagate on source change. Optionally validate the computed result.
+- `dependsOn<S>(Iterable<Basetro<S>> sources, {T Function()? compute})`  
+  **What:** wire this state to other state(s).  
+  **When:** you want derived values (provide `compute`) **or** you want to be notified without changing `.value` (omit `compute`).  
+  **How:** call with one or more sources. You can remove all with `clearDependencies()` or one with `removeDependency(other)`.
 
-- **`dependsOn<B>(Basetro<B> other)`**  
-  **What:** register **reactive dependency** on another state; when `other` changes, *this* mastro notifies its listeners.  
-  **When:** you maintain your own `.value` but want rebuilds when related state changes.  
-  **How:** call multiple times to depend on multiple states; remove with `removeDependency(other)`.
-
-- **`setValidator(bool Function(T) validator, {void Function(T invalid)? onValidationError})`**  
+- `setValidator(bool Function(T) validator, {void Function(T invalid)? onValidationError})`  
   **What:** gate assignments to `.value`.  
   **When:** you must enforce invariants (non‑negative totals, non‑empty names, etc.).  
-  **How:** on invalid assignment, `.value` is **not** updated; `onValidationError` fires with the rejected value.
+  **How:** on invalid assignment, `.value` is not updated; `onValidationError` fires with the rejected value.
 
-- **`observe(String key, void Function(T value) handler)` / `removeObserver(String key)`**  
-  **What:** subscribe to value changes for **side effects** (logging, analytics, imperatives).  
+- `observe(String key, void Function(T value) handler)` / `removeObserver(String key)`  
+  **What:** subscribe to value changes for side effects (logging, analytics, imperatives).  
   **When:** you need reactions outside the widget tree.  
   **How:** keys are unique; calling `observe` again with the same key replaces the old handler.
 
----
+- `clearDependencies()`  
+  **What:** drop **all** wired dependencies.  
+  **When:** you temporarily derived from multiple sources and want to release them (e.g., screen change).
 
 ### .modify() vs .value (when to use which?)
 
-Both are safe, but they have different ergonomics:
+- Use **`.value =`** for direct replacements of simple values.
+- Use **`.modify(...)`** for *read‑modify‑write* on complex values to bundle edits and emit a **single** notification.
 
-- **`.value = newValue`**
-  - **Best for replacements** (assign a brand new value).
-  - Triggers validators/observers and notifies **once** per assignment.
+```dart
+// Direct replacement
+total.value = 0;
 
-- **`.modify((Mutable<T> s) { ... })`**
-  - **Best for in‑place edits** of reference types (Lists, Maps, classes) or **batch updates**.
-  - The callback receives a `Mutable<T>` (`s.value` is the live value). You can change multiple fields, push to lists, etc.  
-    When the callback completes, listeners are **notified once** (coalesced), and validators/observers run once.
-  - Supports `FutureOr` → you can `await` inside the modifier to wrap an async critical section in a **single** coherent update.
-  - Avoids the common pitfall of mutating a field and forgetting to call `notify()` afterward — `modify` does it for you.
-
-> **Manual notifications:** If you *must* force a rebuild without changing the value (rare), call `state.notify()`.
-
----
+// Batched mutations (single notify)
+await cart.modify((m) {
+  m.value.items.add(newItem);
+  m.value.taxes = computeTaxes(m.value.items);
+});
+```
 
 ### Validation & Error Handling
 
-```dart
-final age = 25.mastro;
+- Invalid assignments are rejected silently with an optional `onValidationError(invalid)` callback.
+- Wrap business rules in `setValidator` and keep assignment sites clean.
+- Throwing during `.modify(...)` bubbles as usual; no partial notification is emitted.
 
-age.setValidator(
-  (v) => v >= 0 && v <= 120,
-  onValidationError: (invalid) {
-    debugPrint('Invalid age: $invalid');
-  },
-);
+### late() state
 
-age.value = -5; // ❌ rejected
-age.value = 26; // ✅ accepted
-```
-
-### `late()` state
-
-Both Lightro & Mastro support uninitialized state via `.late()`:
+- `.late()` creates an **uninitialized** state that throws if you read `.value` too early.
+- The **`.safe`** getter returns `null` before initialization — ideal for first paints:
 
 ```dart
-final token  = Lightro<String>.late();
-final user   = Mastro<User>.late();
+final token = Lightro<String>.late();
+final name = Lightro<String>.late();
 
-// token.value; // ❌ throws (uninitialized)
-token.value = 'abc'; // ✅ initialize
+Text(token.safe ?? 'No token'); // ✅ no throw on first build
+
+// name.value; // ❌ throws (uninitialized)
+name.value = 'Alex'; // ✅ initialize
 
 final label = token.when(
   uninitialized: () => 'No token',
-  initialized: (v) => 'Token: $v',
+  initialized: (value) => 'Token: $value',
 );
 ```
 
@@ -381,45 +369,6 @@ MastroBuilder(
   ),
 );
 ```
-
-### Custom Sealed State Classes (beyond AsyncState)
-
-You can define your **own** union/sealed state for richer UI states:
-
-```dart
-sealed class ProfileState {
-  const ProfileState();
-  const factory ProfileState.initial() = _Initial;
-  const factory ProfileState.loading() = _Loading;
-  const factory ProfileState.ready(User user) = _Ready;
-  const factory ProfileState.error(String? message) = _Error;
-}
-
-class _Initial extends ProfileState { const _Initial(); }
-class _Loading extends ProfileState { const _Loading(); }
-class _Ready extends ProfileState { final User user; const _Ready(this.user); }
-class _Error extends ProfileState { final String? message; const _Error(this.message); }
-
-final profileState = const ProfileState.initial().lightro;
-```
-
-Use Dart 3 pattern matching or custom helpers:
-
-```dart
-Widget build(BuildContext context) {
-  return MastroBuilder(
-    state: profileState,
-    builder: (s, _) => switch (s.value) {
-      _Initial()           => const Text('Tap load'),
-      _Loading()           => const CircularProgressIndicator(),
-      _Ready(:final user)  => Text('Hi ${user.name}'),
-      _Error(:final msg)   => Text(msg ?? 'Error'),
-    },
-  );
-}
-```
-
----
 
 ## Persistence (Persistro → PersistroLightro → PersistroMastro)
 
@@ -461,7 +410,7 @@ Widget build(BuildContext context) {
 
 **Instance methods**:
 - `Future<void> persist()` / `restore()` / `clear()`
-- Plus **all** `Mastro` APIs: `compute`, `dependsOn`, `setValidator`, `observe`, `removeDependency`, `removeObserver`.
+- Plus **all** `Mastro` APIs: `dependsOn`, `setValidator`, `observe`, `removeDependency`, `removeObserver`, ....
 
 ---
 
@@ -469,14 +418,17 @@ Widget build(BuildContext context) {
 
 ### Local vs Scoped (Global) Boxes
 
-- **Local**: `const MyView() : super(box: () => MyBox());`
-- **Scoped**: provide high in the tree and resolve via `BoxProvider.of<T>(context)`
+- **Local:** `MyView() : super(box: () => MyBox());`
+- **Scoped:** provide high in the tree and resolve via `BoxProvider.of<T>(context)`
 
 ### MastroBox lifecycle & options
 
-**Overridables**:
-- `void init()` — called once when the box is first used (call `super.init()`).
-- `void cleanup()` — idempotent cleanup (call `super.cleanup()`).
+Overridables:
+
+- `init()` — called once when the box is constructed (call `super.init()` if overridden).
+- `cleanup()` — idempotent cleanup (call `super.cleanup()`).
+- **View hooks:** **`onViewAttached(MastroView view)`** and **`onViewDetached(MastroView view)`** fire as views mount/unmount. Useful for ref counts and auto‑cleanup.
+
 
 **Options**:
 - `autoCleanupWhenAllViewsDetached` (bool; box property and provider option)
@@ -493,17 +445,10 @@ class NotesBox extends MastroBox<NotesEvent> {
 }
 ```
 
-### Actions **with or without** Events
+### Actions with or without Events
 
-You can **choose** per‑feature:
-- **Just methods (simplest):** `box.addNote('Hi')`
-- **Events (richer):** `box.execute(NotesEvent.add('Hi'))`
-
-**Prefer events** when you need:
-- Concurrency modes (`parallel`/`sequential`/`solo`)
-- Back‑blocking UX (`executeBlockPop`)
-- Loose callbacks bus (`Callbacks.on/.invoke`)
-- Auditing/telemetry conventions
+- **Without events:** call methods on the box for straightforward logic.
+- **With events:** define `MastroEvent<BoxType>` subclasses to opt into concurrency controls, back‑blocking, and loose callbacks.
 
 ### Creating Events (optional)
 
@@ -534,7 +479,10 @@ class _Load extends NotesEvent {
 }
 ```
 
+
 ### Running Events
+
+Both `execute(event)` and `executeBlockPop(context, event)` **return `Future<void>`** — you can `await` execution to chain actions or to ensure ordering in your widget logic:
 
 ```dart
 // Common signatures:
@@ -556,7 +504,7 @@ await box.executeBlockPop(
 ### EventRunningMode
 
 - `parallel` (default): run freely.
-- `sequential`: per‑type FIFO queue; each queued `execute` is awaitable.
+- `sequential`: events of this type are queued and executed **one at a time** (FIFO).
 - `solo`: per‑type exclusivity — duplicates of the **same** SOLO type are ignored while one runs (different SOLO types may run concurrently).
 
 ### Box Tagging & Loose Callbacks
@@ -635,20 +583,18 @@ boundary.trigger(); // forces subtree to rebuild (new key)
 
 ## MastroScope (back‑blocking UX)
 
+Provide an `OnPopScope` so `executeBlockPop` can temporarily block the back button and show a “Please wait…” message while an event is running.
+
 ```dart
-MaterialApp(
-  home: MastroScope(
-    onPopScope: OnPopScope(
-      onPopWaitMessage: (context) {
-        // e.g., show overlay while busy
-      },
+MastroScope(
+  onPopScope: OnPopScope(
+    onPopWaitMessage: (context) => ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please wait…')),
     ),
-    child: HomeView(),
   ),
+  child: MaterialApp(home: const HomeView()),
 );
 ```
-
-**Use with** `executeBlockPop(context, event, {callbacks, mode})` to block system back until the event completes.
 
 ---
 
@@ -657,17 +603,59 @@ MaterialApp(
 **Generic is mandatory:** `class MyView extends MastroView<MyBox> { ... }`
 
 **Constructors:**
-- Local: `const MyView() : super(box: () => MyBox());`
+- Local: `MyView() : super(box: () => MyBox());`
 - Scoped: `const MyView();` (and provide `MyBox` via `BoxProvider`)
 
-**Overridables:**
-- `initState`, `dispose`
-- `onResume`, `onInactive`, `onPaused`, `onHide`, `onDetached`
-- `rebuild(BuildContext context)`
+Overridables:
+
+- `initState(BuildContext context, T box)` / `dispose(BuildContext context, T box)`
+- `onResume`, `onInactive`, `onPaused`, `onHide`, `onDetached` (app lifecycle)
+- **Box receives:** **`onViewAttached(MastroView view)`** / **`onViewDetached(MastroView view)`** as the view mounts/unmounts
+
+> ❗️**Removed:** `rebuild(context)` override on `MastroView` — it no longer exists.
 
 **Box resolution order:**
 1. If a local factory is provided → use it.
 2. Else → `BoxProvider.of<T>(context)`.
+---
+
+## Providers placement with `MaterialApp` (important)
+
+It is **recommended** to place `MastroScope` and your global `BoxProvider`/`MultiBoxProvider` **above** your `MaterialApp` (or in `MaterialApp.builder`).
+
+Why? Because `home:` lives **inside** the `Navigator` that `MaterialApp` creates. A provider placed inside `home:` only wraps **that first route**. As soon as you navigate (`push`, `showDialog`, `showModalBottomSheet`, etc.), new routes won’t see those providers.
+
+### Recommended
+
+```dart
+void main() {
+  runApp(
+    MastroScope(
+      onPopScope: OnPopScope(onPopWaitMessage: (c) { /* ... */ }),
+      child: MultiBoxProvider(
+        providers: [
+          BoxProvider(create: (_) => AppBox()),
+        ],
+        child: MaterialApp(
+          home: const HomeView(),
+        ),
+      ),
+    ),
+  );
+}
+```
+
+### Also OK: use `MaterialApp.builder`
+
+```dart
+MaterialApp(
+  builder: (context, child) => MultiBoxProvider(
+    providers: [BoxProvider(create: (_) => AppBox())],
+    child: child!,
+  ),
+  home: const HomeView(),
+);
+```
 
 ---
 
@@ -732,6 +720,9 @@ Use `PersistroLightro.json` or `PersistroMastro.json` and supply `fromJson`/`toJ
 **Will scoped boxes auto‑dispose?**  
 By default, providers clean up when unmounted. You can also enable `autoCleanupWhenAllViewsDetached` to clean when the last `MastroView` detaches.
 
+**I need a “safe read” on a late state.**  
+Use `.safe` to get a nullable view of the current value; on first paint it’s `null` until initialized or use `.when(uninitialized: () => ..., initialized: (value) => ...)`.
+
 ---
 
 ## Design Patterns & Recipes
@@ -747,6 +738,15 @@ Reserve `executeBlockPop` for actions that must finish or be cancelled explicitl
 
 **Tags for cheap refresh**  
 Use `TagBuilder` when you need to refresh a section without introducing a dedicated state.
+
+**How do I stop a computed state from listening?**  
+Call `clearDependencies()` to remove all wired sources (or `removeDependency(other)`).
+
+**Can I await events?**  
+Yes — both `execute` and `executeBlockPop` return `Future<void>`.
+
+**How do I derive from multiple states?**  
+Use `dependsOn([a, b, c], compute: () { ... })`. Omit `compute` to just forward notifications (notify‑only).
 
 ---
 
@@ -765,3 +765,4 @@ Contributions are welcome! If you have any ideas, suggestions, or bug reports, p
 ## License
 
 MIT © Yousef Shaiban
+
